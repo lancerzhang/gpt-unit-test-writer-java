@@ -1,5 +1,4 @@
 import org.jacoco.core.analysis.*;
-import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.tools.ExecFileLoader;
 
 import java.io.File;
@@ -10,12 +9,14 @@ import java.util.List;
 public class CoverageDetailExtractor {
 
     private final String projectPath;
+    private final ExecFileLoader execFileLoader;
 
     public CoverageDetailExtractor(String projectPath) throws IOException {
-            this.projectPath = projectPath;
-            File EXEC_FILE = new File(projectPath + "/target/jacoco.exec");
-            final ExecFileLoader execFileLoader = new ExecFileLoader();
-            execFileLoader.load(EXEC_FILE);
+        this.projectPath = projectPath;
+        File EXEC_FILE = new File(projectPath + "/target/jacoco.exec");
+        final ExecFileLoader execFileLoader = new ExecFileLoader();
+        execFileLoader.load(EXEC_FILE);
+        this.execFileLoader = execFileLoader;
     }
 
     public CoverageDetails getCoverageDetails(String className) throws IOException {
@@ -23,7 +24,7 @@ public class CoverageDetailExtractor {
         List<Integer> partlyCovered = new ArrayList<>();
 
         final CoverageBuilder coverageBuilder = new CoverageBuilder();
-        final Analyzer analyzer = new Analyzer(new ExecutionDataStore(), coverageBuilder);
+        final Analyzer analyzer = new Analyzer(execFileLoader.getExecutionDataStore(), coverageBuilder);
         analyzer.analyzeAll(new File(this.projectPath + "/target/classes/" + className.replace('.', '/') + ".class"));
 
         for (final IClassCoverage cc : coverageBuilder.getClasses()) {
@@ -40,21 +41,5 @@ public class CoverageDetailExtractor {
         return new CoverageDetails(notCovered, partlyCovered);
     }
 
-    public static class CoverageDetails {
-        private final List<Integer> notCoveredLines;
-        private final List<Integer> partlyCoveredLines;
 
-        public CoverageDetails(List<Integer> notCoveredLines, List<Integer> partlyCoveredLines) {
-            this.notCoveredLines = notCoveredLines;
-            this.partlyCoveredLines = partlyCoveredLines;
-        }
-
-        public List<Integer> getNotCoveredLines() {
-            return notCoveredLines;
-        }
-
-        public List<Integer> getPartlyCoveredLines() {
-            return partlyCoveredLines;
-        }
-    }
 }

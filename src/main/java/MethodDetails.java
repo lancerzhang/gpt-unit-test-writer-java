@@ -26,4 +26,16 @@ public class MethodDetails {
     public void setEndLine(int endLine) {
         this.endLine = endLine;
     }
+
+    public String getCodeWithLineNumbers() {
+        StringBuilder sb = new StringBuilder();
+        String[] lines = code.split("\n");
+        for (int i = 0; i < lines.length; i++) {
+            sb.append(startLine + i)
+                    .append(": ")
+                    .append(lines[i])
+                    .append("\n");
+        }
+        return sb.toString();
+    }
 }
