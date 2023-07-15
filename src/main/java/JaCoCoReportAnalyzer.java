@@ -6,6 +6,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.Map;
 
 public class JaCoCoReportAnalyzer {
 
-    public static Map<String, List<String>> analyzeReport(String projectPath) throws Exception {
+    public Map<String, List<String>> analyzeReport(String projectPath) throws Exception {
         Map<String, List<String>> lowCoverageMethods = new HashMap<>();
 
         File jacocoReport = new File(projectPath + "/target/site/jacoco/jacoco.xml");
@@ -53,16 +54,11 @@ public class JaCoCoReportAnalyzer {
         return lowCoverageMethods;
     }
 
-    public void runJaCoCo(String projectPath) {
-        try {
-            ProcessBuilder pb = new ProcessBuilder("mvn", "test");
-            pb.directory(new File(projectPath));
-            Process p = pb.start();
-            p.waitFor();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void runJaCoCo(String projectPath) throws InterruptedException, IOException {
+        ProcessBuilder pb = new ProcessBuilder("mvn", "test");
+        pb.directory(new File(projectPath));
+        Process p = pb.start();
+        p.waitFor();
     }
-
 
 }
