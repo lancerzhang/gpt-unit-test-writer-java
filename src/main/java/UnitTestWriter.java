@@ -49,8 +49,8 @@ public class UnitTestWriter {
                                 .collect(Collectors.toList());
 
                         // Change notCoveredLines and partlyCoveredLines to string
-                        String notCoveredLinesString = notCoveredLines.stream().map(Object::toString).collect(Collectors.joining(", "));
-                        String partlyCoveredLinesString = partlyCoveredLines.stream().map(Object::toString).collect(Collectors.joining(", "));
+                        String notCoveredLinesString = Utils.convertToRanges(notCoveredLines);
+                        String partlyCoveredLinesString = Utils.convertToRanges(partlyCoveredLines);
 
                         // Print method code, notCoveredLines and partlyCoveredLines line number string
                         System.out.println("Method code:\n" + details.getCodeWithLineNumbers());
