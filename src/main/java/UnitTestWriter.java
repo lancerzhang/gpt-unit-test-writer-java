@@ -12,22 +12,22 @@ public class UnitTestWriter {
         analyzer.runJaCoCo(projectPath);
 
         System.out.println("start to analyze jacoco report");
-        Map<String, List<String>> lowCoverageMethods = analyzer.analyzeReport(projectPath);
         int limit = 1;
-        for (Map.Entry<String, List<String>> entry : lowCoverageMethods.entrySet()) {
-            String classPathName = entry.getKey();
-            List<String> values = entry.getValue();
-            System.out.println("class: " + classPathName);
-            for (String methodName : values) {
-                System.out.println("method: " + methodName);
-                if (limit > 0) {
-                    String javaFilePath = new File(projectPath, "/src/main/java/" +
-                            classPathName.replace(".", "/") + ".java").getPath();
+        Map<String, List<MethodCoverage>> lowCoverageMethods = analyzer.analyzeReport(projectPath);
 
-                    String[] classPathSegments = classPathName.split("/");
-                    String className = classPathSegments[classPathSegments.length - 1];
-                    String methodCode = parser.extractMethodCode(javaFilePath, className, methodName);
-                    System.out.println(methodCode);
+        for (String classPathName : lowCoverageMethods.keySet()) {
+            System.out.println("Low coverage methods in class: " + classPathName + ":");
+            String javaFilePath = new File(projectPath, "/src/main/java/" +
+                    classPathName.replace(".", "/") + ".java").getPath();
+            String[] classPathSegments = classPathName.split("/");
+            String className = classPathSegments[classPathSegments.length - 1];
+
+            Map<String, MethodDetails> methodDetailsMap = parser.extractMethodCode(javaFilePath, className);
+            for (MethodCoverage method : lowCoverageMethods.get(classPathName)) {
+                String methodName = method.getMethodName();
+                System.out.println("\tmethodName:" + methodName);
+                if (limit > 0) {
+
                     limit--;
                 }
             }

@@ -7,22 +7,31 @@ import com.github.javaparser.ast.body.TypeDeclaration;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 public class JavaParser {
-    public String extractMethodCode(String filePath, String className, String methodName) throws IOException {
+
+    public Map<String, MethodDetails> extractMethodCode(String filePath, String className) throws IOException {
+        Map<String, MethodDetails> methodDetailsMap = new HashMap<>();
+
         CompilationUnit cu = StaticJavaParser.parse(Files.newInputStream(Paths.get(filePath)));
         for (TypeDeclaration<?> type : cu.getTypes()) {
             if (type.getNameAsString().equals(className)) {
                 for (Node child : type.getChildNodes()) {
                     if (child instanceof MethodDeclaration) {
                         MethodDeclaration method = (MethodDeclaration) child;
-                        if (method.getNameAsString().equals(methodName)) {
-                            return method.toString();
-                        }
+
+                        MethodDetails details = new MethodDetails();
+                        details.setCode(method.toString());
+                        details.setStartLine(method.getBegin().get().line);
+                        details.setEndLine(method.getEnd().get().line);
+
+                        methodDetailsMap.put(method.getNameAsString(), details);
                     }
                 }
             }
         }
-        return null;
+        return methodDetailsMap;
     }
 }

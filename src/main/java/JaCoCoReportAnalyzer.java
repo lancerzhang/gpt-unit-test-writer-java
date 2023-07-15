@@ -14,8 +14,8 @@ import java.util.Map;
 
 public class JaCoCoReportAnalyzer {
 
-    public Map<String, List<String>> analyzeReport(String projectPath) throws Exception {
-        Map<String, List<String>> lowCoverageMethods = new HashMap<>();
+    public Map<String, List<MethodCoverage>> analyzeReport(String projectPath) throws Exception {
+        Map<String, List<MethodCoverage>> lowCoverageMethods = new HashMap<>();
 
         File jacocoReport = new File(projectPath + "/target/site/jacoco/jacoco.xml");
 
@@ -42,12 +42,15 @@ public class JaCoCoReportAnalyzer {
             float coverage = (float) covered / (covered + missed);
 
             if (coverage < 0.8) {
+                MethodCoverage lowCoverageMethod = new MethodCoverage();
+                lowCoverageMethod.setMethodName(methodName);
+
                 // Check if the class name already exists in the map
                 if (!lowCoverageMethods.containsKey(className)) {
                     lowCoverageMethods.put(className, new ArrayList<>());
                 }
 
-                lowCoverageMethods.get(className).add(methodName);
+                lowCoverageMethods.get(className).add(lowCoverageMethod);
             }
         }
 
