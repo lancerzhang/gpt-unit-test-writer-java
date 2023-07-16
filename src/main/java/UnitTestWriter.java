@@ -11,7 +11,7 @@ public class UnitTestWriter {
         CoverageDetailExtractor extractor = new CoverageDetailExtractor(projectPath);
 
         System.out.println("start to run mvn test for: " + projectPath);
-//        analyzer.runJaCoCo(projectPath);
+        analyzer.runJaCoCo(projectPath);
 
         System.out.println("start to analyze jacoco report");
         int limit = 1;
@@ -19,8 +19,7 @@ public class UnitTestWriter {
 
         for (String classPathName : lowCoverageMethods.keySet()) {
             System.out.println("Low coverage methods in class: " + classPathName + ":");
-            String javaFilePath = new File(projectPath, "/src/main/java/" +
-                    classPathName.replace(".", "/") + ".java").getPath();
+            String javaFilePath = new File(projectPath, "/src/main/java/" + classPathName + ".java").getPath();
             String[] classPathSegments = classPathName.split("/");
             String className = classPathSegments[classPathSegments.length - 1];
             if (className.contains("$")) {
