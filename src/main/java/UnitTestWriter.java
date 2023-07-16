@@ -12,13 +12,18 @@ import java.util.stream.Collectors;
 public class UnitTestWriter {
 
     private String projectPath;
+    private String javaVersion;
+    private String springVersion;
     private JaCoCoReportAnalyzer analyzer;
     private JavaParser parser;
     private CoverageDetailExtractor extractor;
     private int limit;
 
-    public UnitTestWriter(String projectPath, int limit) throws IOException {
+    public UnitTestWriter(String projectPath, int limit) throws Exception {
         this.projectPath = projectPath;
+        PomInfoExtractor pomExtractor = new PomInfoExtractor(projectPath + "/pom.xml");
+        this.javaVersion = pomExtractor.extractJavaVersion();
+        this.springVersion = pomExtractor.extractSpringVersion();
         this.analyzer = new JaCoCoReportAnalyzer();
         this.parser = new JavaParser();
         this.extractor = new CoverageDetailExtractor(projectPath);
@@ -88,13 +93,7 @@ public class UnitTestWriter {
         String notCoveredLinesString = Utils.convertToRanges(notCoveredLines);
         String partlyCoveredLinesString = Utils.convertToRanges(partlyCoveredLines);
 
-        // Use details to formulate a prompt for OpenAI's API
-        String prompt = "Given this Java method: \n\n" + details.getCodeWithLineNumbers() + "\n\n"
-                + "which has not covered lines: " + notCoveredLinesString + " and partly covered lines: "
-                + partlyCoveredLinesString + ", please generate a suitable JUnit test for it.";
-
-        // Call OpenAI's API to generate unit test
-        String generatedTest = callOpenAI(prompt);
+        String generatedTest = getGeneratedTest(className, details, notCoveredLinesString, partlyCoveredLinesString);
 
         // Define the path of the test file
         String testFilePath = projectPath + "/src/test/java/" + className + "Test.java";
@@ -117,11 +116,22 @@ public class UnitTestWriter {
 
     }
 
+    private String getGeneratedTest(String className, MethodDetails details, String notCoveredLines, String partlyCoveredLines) {
+        String prompt = String.format("I am working with a Java %s project that uses Spring Boot %s. " +
+                        "I have a class %s and a method with the following details:\n\n%s\n\n" +
+                        "The following lines are not covered by unit tests:\n\n%s\n\n" +
+                        "The following lines are partly covered:\n\n%s\n\n" +
+                        "Could you help me generate a unit test for this method?",
+                this.javaVersion, this.springVersion, className, details.getCodeWithLineNumbers(), notCoveredLines, partlyCoveredLines);
 
-    private String callOpenAI(String prompt) throws IOException {
+        System.out.println(prompt);
 
-        return "completion";
+        // Call to OpenAI API with the prompt here, and get the generated test
+        String generatedTest = ""; // replace this line with actual OpenAI API call
+
+        return generatedTest;
     }
+
 
 }
 
