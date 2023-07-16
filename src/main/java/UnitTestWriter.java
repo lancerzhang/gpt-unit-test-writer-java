@@ -1,68 +1,127 @@
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class UnitTestWriter {
-    public static void main(String[] args) throws Exception {
-        String projectPath = "/Users/lancer/Development/ws/survey-server";
-        JaCoCoReportAnalyzer analyzer = new JaCoCoReportAnalyzer();
-        JavaParser parser = new JavaParser();
-        CoverageDetailExtractor extractor = new CoverageDetailExtractor(projectPath);
 
+    private String projectPath;
+    private JaCoCoReportAnalyzer analyzer;
+    private JavaParser parser;
+    private CoverageDetailExtractor extractor;
+    private int limit;
+
+    public UnitTestWriter(String projectPath, int limit) throws IOException {
+        this.projectPath = projectPath;
+        this.analyzer = new JaCoCoReportAnalyzer();
+        this.parser = new JavaParser();
+        this.extractor = new CoverageDetailExtractor(projectPath);
+        this.limit = limit;
+    }
+
+    public void generateUnitTest() throws Exception {
         System.out.println("start to run mvn test for: " + projectPath);
-        analyzer.runJaCoCo(projectPath);
+//        analyzer.runJaCoCo(projectPath);
 
         System.out.println("start to analyze jacoco report");
-        int limit = 1;
         Map<String, List<MethodCoverage>> lowCoverageMethods = analyzer.analyzeReport(projectPath);
 
         for (String classPathName : lowCoverageMethods.keySet()) {
-            System.out.println("Low coverage methods in class: " + classPathName + ":");
-            String javaFilePath = new File(projectPath, "/src/main/java/" + classPathName + ".java").getPath();
-            String[] classPathSegments = classPathName.split("/");
-            String className = classPathSegments[classPathSegments.length - 1];
-            if (className.contains("$")) {
-                // ignore nested class
-                continue;
-            }
-
-            Map<String, MethodDetails> methodDetailsMap = parser.extractMethodCode(javaFilePath, className);
-            CoverageDetails coverageDetails = extractor.getCoverageDetails(classPathName);
-
-            for (MethodCoverage method : lowCoverageMethods.get(classPathName)) {
-                String methodName = method.getMethodName();
-                System.out.println("\tmethodName: " + methodName);
-                if (limit > 0) {
-                    MethodDetails details = methodDetailsMap.get(methodName);
-                    if (details != null) {
-                        int startLine = details.getStartLine();
-                        int endLine = details.getEndLine();
-
-                        // Filter the not covered and partly covered lines to only include those within the method
-                        List<Integer> notCoveredLines = coverageDetails.getNotCoveredLines().stream()
-                                .filter(line -> line >= startLine && line <= endLine)
-                                .collect(Collectors.toList());
-                        List<Integer> partlyCoveredLines = coverageDetails.getPartlyCoveredLines().stream()
-                                .filter(line -> line >= startLine && line <= endLine)
-                                .collect(Collectors.toList());
-
-                        // Change notCoveredLines and partlyCoveredLines to string
-                        String notCoveredLinesString = Utils.convertToRanges(notCoveredLines);
-                        String partlyCoveredLinesString = Utils.convertToRanges(partlyCoveredLines);
-
-                        // Print method code, notCoveredLines and partlyCoveredLines line number string
-                        System.out.println("Method code:\n" + details.getCodeWithLineNumbers());
-                        System.out.println("Not covered lines: " + notCoveredLinesString);
-                        System.out.println("Partly covered lines: " + partlyCoveredLinesString);
-
-                        limit--;
-                    } else {
-                        System.out.println("Details not found for method: " + methodName);
-                    }
-                }
-            }
-
+            handleClass(classPathName, lowCoverageMethods.get(classPathName));
         }
     }
+
+    private void handleClass(String classPathName, List<MethodCoverage> methods) throws Exception {
+        System.out.println("Low coverage methods in class: " + classPathName + ":");
+
+        if (classPathName.contains("$")) {
+            // ignore nested class
+            return;
+        }
+
+        String javaFilePath = new File(projectPath, "/src/main/java/" + classPathName + ".java").getPath();
+        String[] classPathSegments = classPathName.split("/");
+        String className = classPathSegments[classPathSegments.length - 1];
+
+        Map<String, MethodDetails> methodDetailsMap = parser.extractMethodCode(javaFilePath, className);
+        CoverageDetails coverageDetails = extractor.getCoverageDetails(classPathName);
+
+        for (MethodCoverage method : methods) {
+            handleMethod(classPathName, method, methodDetailsMap, coverageDetails);
+        }
+    }
+
+    private void handleMethod(String classPathName, MethodCoverage method, Map<String, MethodDetails> methodDetailsMap, CoverageDetails coverageDetails) throws IOException {
+        String methodName = method.getMethodName();
+        System.out.println("\tmethodName: " + methodName);
+
+        if (limit <= 0) return;
+
+        MethodDetails details = methodDetailsMap.get(methodName);
+        if (details != null) {
+            handleDetails(classPathName, details, coverageDetails);
+            limit--;
+        } else {
+            System.out.println("Details not found for method: " + methodName);
+        }
+    }
+
+    private void handleDetails(String className, MethodDetails details, CoverageDetails coverageDetails) throws IOException {
+        int startLine = details.getStartLine();
+        int endLine = details.getEndLine();
+
+        // Filter the not covered and partly covered lines to only include those within the method
+        List<Integer> notCoveredLines = coverageDetails.getNotCoveredLines().stream()
+                .filter(line -> line >= startLine && line <= endLine)
+                .collect(Collectors.toList());
+        List<Integer> partlyCoveredLines = coverageDetails.getPartlyCoveredLines().stream()
+                .filter(line -> line >= startLine && line <= endLine)
+                .collect(Collectors.toList());
+
+        // Change notCoveredLines and partlyCoveredLines to string
+        String notCoveredLinesString = Utils.convertToRanges(notCoveredLines);
+        String partlyCoveredLinesString = Utils.convertToRanges(partlyCoveredLines);
+
+        // Use details to formulate a prompt for OpenAI's API
+        String prompt = "Given this Java method: \n\n" + details.getCodeWithLineNumbers() + "\n\n"
+                + "which has not covered lines: " + notCoveredLinesString + " and partly covered lines: "
+                + partlyCoveredLinesString + ", please generate a suitable JUnit test for it.";
+
+        // Call OpenAI's API to generate unit test
+        String generatedTest = callOpenAI(prompt);
+
+        // Define the path of the test file
+        String testFilePath = projectPath + "/src/test/java/" + className + "Test.java";
+        File testFile = new File(testFilePath);
+
+        Path filePath = Paths.get(testFilePath);
+// Ensure directories exist
+        Files.createDirectories(filePath.getParent());
+
+        if (testFile.exists()) {
+            // If test file already exists, append the new test
+            String contentToAppend = "\n\n" + generatedTest;
+            byte[] bytes = contentToAppend.getBytes(StandardCharsets.UTF_8);
+            Files.write(filePath, bytes, StandardOpenOption.APPEND);
+        } else {
+            // If test file does not exist, create it and write the new test
+            byte[] bytes = generatedTest.getBytes(StandardCharsets.UTF_8);
+            Files.write(filePath, bytes);
+        }
+
+    }
+
+
+    private String callOpenAI(String prompt) throws IOException {
+
+        return "completion";
+    }
+
 }
+
