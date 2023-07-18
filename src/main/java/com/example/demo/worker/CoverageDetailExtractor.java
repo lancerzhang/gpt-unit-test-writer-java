@@ -1,5 +1,6 @@
-package com.example.demo;
+package com.example.demo.worker;
 
+import com.example.demo.model.CoverageDetails;
 import org.jacoco.core.analysis.*;
 import org.jacoco.core.tools.ExecFileLoader;
 

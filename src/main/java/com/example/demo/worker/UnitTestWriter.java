@@ -1,5 +1,9 @@
-package com.example.demo;
+package com.example.demo.worker;
 
+import com.example.demo.model.CoverageDetails;
+import com.example.demo.model.MethodCoverage;
+import com.example.demo.model.MethodDetails;
+import com.example.demo.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -14,12 +18,9 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.core.io.Resource;
 import org.springframework.util.FileCopyUtils;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 @Component
 public class UnitTestWriter {

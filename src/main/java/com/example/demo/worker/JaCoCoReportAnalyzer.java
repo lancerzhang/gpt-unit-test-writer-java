@@ -1,5 +1,6 @@
-package com.example.demo;
+package com.example.demo.worker;
 
+import com.example.demo.model.MethodCoverage;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.*;
 

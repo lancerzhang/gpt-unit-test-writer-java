@@ -1,5 +1,6 @@
-package com.example.demo;
+package com.example.demo.worker;
 
+import com.example.demo.model.MethodDetails;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
@@ -34,7 +35,7 @@ public class JavaParser {
                         MethodDeclaration method = (MethodDeclaration) child;
                         String methodName = method.getNameAsString();
 
-                        // Build the com.example.demo.MethodDetails object
+                        // Build the com.example.demo.model.MethodDetails object
                         MethodDetails details = new MethodDetails();
                         details.setCode(method.toString());
                         details.setStartLine(method.getBegin().get().line);
