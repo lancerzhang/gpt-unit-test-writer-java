@@ -1,3 +1,9 @@
+package com.example.demo;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -8,25 +14,41 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.util.FileCopyUtils;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+@Component
 public class UnitTestWriter {
 
     private String projectPath;
-    private String javaVersion;
-    private String springVersion;
-    private JaCoCoReportAnalyzer analyzer;
-    private JavaParser parser;
+    private PomInfoExtractor pomExtractor;
+    private String projectInfo;
+    private final JaCoCoReportAnalyzer analyzer;
+    private final JavaParser parser;
     private CoverageDetailExtractor extractor;
     private int limit;
 
-    public UnitTestWriter(String projectPath, int limit) throws Exception {
+    @Value("classpath:prompts/ut.txt")
+    private Resource utTemplateResource;
+
+    @Autowired
+    public UnitTestWriter(JaCoCoReportAnalyzer analyzer, JavaParser parser) {
+        this.analyzer = analyzer;
+        this.parser = parser;
+    }
+
+    public void setProjectPath(String projectPath) throws Exception {
         this.projectPath = projectPath;
-        PomInfoExtractor pomExtractor = new PomInfoExtractor(projectPath + "/pom.xml");
-        this.javaVersion = pomExtractor.extractJavaVersion();
-        this.springVersion = pomExtractor.extractSpringVersion();
-        this.analyzer = new JaCoCoReportAnalyzer();
-        this.parser = new JavaParser();
+        this.pomExtractor = new PomInfoExtractor(projectPath + "/pom.xml");
+        this.projectInfo = pomExtractor.getProjectInfo();
         this.extractor = new CoverageDetailExtractor(projectPath);
+    }
+
+    public void setLimit(int limit) {
         this.limit = limit;
     }
 
@@ -58,6 +80,10 @@ public class UnitTestWriter {
         CoverageDetails coverageDetails = extractor.getCoverageDetails(classPathName);
 
         for (MethodCoverage method : methods) {
+            if (method.getMethodName().contains("$") || method.getMethodName().contains("<")) {
+                // ignore nested method
+                continue;
+            }
             handleMethod(classPathName, method, methodDetailsMap, coverageDetails);
         }
     }
@@ -100,7 +126,7 @@ public class UnitTestWriter {
         File testFile = new File(testFilePath);
 
         Path filePath = Paths.get(testFilePath);
-// Ensure directories exist
+        // Ensure directories exist
         Files.createDirectories(filePath.getParent());
 
         if (testFile.exists()) {
@@ -116,13 +142,17 @@ public class UnitTestWriter {
 
     }
 
-    private String getGeneratedTest(String className, MethodDetails details, String notCoveredLines, String partlyCoveredLines) {
-        String prompt = String.format("I am working with a Java %s project that uses Spring Boot %s. " +
-                        "I have a class %s and a method with the following details:\n\n%s\n\n" +
-                        "The following lines are not covered by unit tests:\n\n%s\n\n" +
-                        "The following lines are partly covered:\n\n%s\n\n" +
-                        "Could you help me generate a unit test for this method?",
-                this.javaVersion, this.springVersion, className, details.getCodeWithLineNumbers(), notCoveredLines, partlyCoveredLines);
+    private String loadTemplate() throws IOException {
+        byte[] bytes = FileCopyUtils.copyToByteArray(utTemplateResource.getInputStream());
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    private String getGeneratedTest(String className, MethodDetails details, String notCoveredLines, String partlyCoveredLines) throws IOException {
+        // Load template from file
+        String promptTemplate = loadTemplate();
+
+        String prompt = String.format(promptTemplate, this.projectInfo, className, details.getCodeWithLineNumbers(),
+                notCoveredLines, partlyCoveredLines);
 
         System.out.println(prompt);
 

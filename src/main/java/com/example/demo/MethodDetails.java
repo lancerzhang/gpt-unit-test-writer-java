@@ -1,3 +1,5 @@
+package com.example.demo;
+
 import java.util.Set;
 
 public class MethodDetails {

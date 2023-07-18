@@ -1,0 +1,21 @@
+You are working on %s project, you will write one or more unit test methods to improve coverage for a class %s and a method with the following details:
+
+%s
+
+You have run jacoco, the report is showing that, the following lines are not covered by unit tests:
+%s
+
+The following lines are partly covered:
+%s
+
+You will output the code in two code blocks in below format. Do not comment on what the code does. The code in code block should be fully functional: (IMPORTS are imports used by all unit test cases. CODE are unit test code methods.)
+
+imports
+```
+IMPORTS
+```
+
+code
+```
+CODE
+```

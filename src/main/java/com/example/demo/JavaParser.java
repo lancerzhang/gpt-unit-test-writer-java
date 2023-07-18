@@ -1,9 +1,12 @@
+package com.example.demo;
+
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Component
 public class JavaParser {
 
     public Map<String, MethodDetails> extractMethodCode(String filePath, String className) throws IOException {
@@ -30,7 +34,7 @@ public class JavaParser {
                         MethodDeclaration method = (MethodDeclaration) child;
                         String methodName = method.getNameAsString();
 
-                        // Build the MethodDetails object
+                        // Build the com.example.demo.MethodDetails object
                         MethodDetails details = new MethodDetails();
                         details.setCode(method.toString());
                         details.setStartLine(method.getBegin().get().line);

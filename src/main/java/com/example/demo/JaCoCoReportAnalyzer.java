@@ -1,3 +1,6 @@
+package com.example.demo;
+
+import org.springframework.stereotype.Component;
 import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -5,13 +8,16 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class JaCoCoReportAnalyzer {
 
     public Map<String, List<MethodCoverage>> analyzeReport(String projectPath) throws Exception {
@@ -58,10 +64,14 @@ public class JaCoCoReportAnalyzer {
     }
 
     public void runJaCoCo(String projectPath) throws InterruptedException, IOException {
-        ProcessBuilder pb = new ProcessBuilder("mvn", "test");
-        pb.directory(new File(projectPath));
-        Process p = pb.start();
-        p.waitFor();
+        String mvnFileName = System.getProperties().getProperty("os.name").toLowerCase().contains("windows") ? "mvn.cmd" : "mvn";
+        Process process = Runtime.getRuntime().exec(mvnFileName + " test");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+        process.waitFor();
     }
 
 }

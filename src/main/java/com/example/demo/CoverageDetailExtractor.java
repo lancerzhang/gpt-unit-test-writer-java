@@ -1,3 +1,5 @@
+package com.example.demo;
+
 import org.jacoco.core.analysis.*;
 import org.jacoco.core.tools.ExecFileLoader;
 
