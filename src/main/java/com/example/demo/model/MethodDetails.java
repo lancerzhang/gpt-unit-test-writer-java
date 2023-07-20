@@ -1,45 +1,17 @@
 package com.example.demo.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Set;
 
+@Getter
+@Setter
 public class MethodDetails {
     private String code;
     private int startLine;
     private int endLine;
-
     private Set<String> importedClasses;
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public int getStartLine() {
-        return startLine;
-    }
-
-    public void setStartLine(int startLine) {
-        this.startLine = startLine;
-    }
-
-    public int getEndLine() {
-        return endLine;
-    }
-
-    public void setEndLine(int endLine) {
-        this.endLine = endLine;
-    }
-
-    public Set<String> getImportedClasses() {
-        return importedClasses;
-    }
-
-    public void setImportedClasses(Set<String> importedClasses) {
-        this.importedClasses = importedClasses;
-    }
 
     public String getCodeWithLineNumbers() {
         StringBuilder sb = new StringBuilder();

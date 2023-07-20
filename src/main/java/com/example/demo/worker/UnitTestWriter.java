@@ -3,10 +3,14 @@ package com.example.demo.worker;
 import com.example.demo.model.CoverageDetails;
 import com.example.demo.model.MethodCoverage;
 import com.example.demo.model.MethodDetails;
+import com.example.demo.model.OpenAIResult;
+import com.example.demo.service.OpenAIApiService;
 import com.example.demo.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
+import org.springframework.util.FileCopyUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,17 +23,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.core.io.Resource;
-import org.springframework.util.FileCopyUtils;
-
-@Component
+@Service
 public class UnitTestWriter {
 
+    private final JaCoCoReportAnalyzer analyzer;
+    private final JavaParser parser;
+    private final OpenAIApiService openAIApiService;
     private String projectPath;
     private PomInfoExtractor pomExtractor;
     private String projectInfo;
-    private final JaCoCoReportAnalyzer analyzer;
-    private final JavaParser parser;
     private CoverageDetailExtractor extractor;
     private int limit;
 
@@ -37,9 +39,10 @@ public class UnitTestWriter {
     private Resource utTemplateResource;
 
     @Autowired
-    public UnitTestWriter(JaCoCoReportAnalyzer analyzer, JavaParser parser) {
+    public UnitTestWriter(OpenAIApiService openAIApiService, JaCoCoReportAnalyzer analyzer, JavaParser parser) {
         this.analyzer = analyzer;
         this.parser = parser;
+        this.openAIApiService = openAIApiService;
     }
 
     public void setProjectPath(String projectPath) throws Exception {
@@ -158,9 +161,9 @@ public class UnitTestWriter {
         System.out.println(prompt);
 
         // Call to OpenAI API with the prompt here, and get the generated test
-        String generatedTest = ""; // replace this line with actual OpenAI API call
+        OpenAIResult result = openAIApiService.generateUnitTest(prompt);
 
-        return generatedTest;
+        return result.getContent();
     }
 
 
