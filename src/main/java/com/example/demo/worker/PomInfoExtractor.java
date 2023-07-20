@@ -64,9 +64,9 @@ public class PomInfoExtractor {
         projectInfo.append("Java ").append(javaVersion);
         projectInfo.append(", Spring Boot ").append(springVersion);
 
-        if (hasLombok) {
-            projectInfo.append(", Lombok");
-        }
+//        if (hasLombok) {
+//            projectInfo.append(", Lombok");
+//        }
 
         return projectInfo.toString();
     }

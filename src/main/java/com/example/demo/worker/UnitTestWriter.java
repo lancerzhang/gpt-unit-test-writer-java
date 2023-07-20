@@ -26,9 +26,12 @@ import java.util.stream.Collectors;
 @Service
 public class UnitTestWriter {
 
-    private final JaCoCoReportAnalyzer analyzer;
-    private final JavaParser parser;
-    private final OpenAIApiService openAIApiService;
+    @Autowired
+    private JaCoCoReportAnalyzer analyzer;
+    @Autowired
+    private JavaParser parser;
+    @Autowired
+    private OpenAIApiService openAIApiService;
     private String projectPath;
     private PomInfoExtractor pomExtractor;
     private String projectInfo;
@@ -37,13 +40,6 @@ public class UnitTestWriter {
 
     @Value("classpath:prompts/ut.txt")
     private Resource utTemplateResource;
-
-    @Autowired
-    public UnitTestWriter(OpenAIApiService openAIApiService, JaCoCoReportAnalyzer analyzer, JavaParser parser) {
-        this.analyzer = analyzer;
-        this.parser = parser;
-        this.openAIApiService = openAIApiService;
-    }
 
     public void setProjectPath(String projectPath) throws Exception {
         this.projectPath = projectPath;
