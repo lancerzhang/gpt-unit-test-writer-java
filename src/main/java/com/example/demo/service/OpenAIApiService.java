@@ -1,8 +1,9 @@
 package com.example.demo.service;
 
 import com.example.demo.config.OpenAIProperties;
-import com.example.demo.model.OpenAIResult;
+import com.example.demo.model.openai.Data;
 import com.example.demo.model.openai.OpenAIApiResponse;
+import com.example.demo.model.openai.OpenAIResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -28,17 +29,15 @@ public class OpenAIApiService {
     private ResourceLoader resourceLoader;
 
     public OpenAIResult generateUnitTest(String prompt) throws IOException {
+        OpenAIApiResponse response;
+
         if ("dummy".equals(properties.getApiBase())) {
             // Load the response from the local resource file
             Resource resource = new ClassPathResource("dummy/utResp.json");
             ObjectMapper objectMapper = new ObjectMapper();
-            OpenAIApiResponse response = objectMapper.readValue(resource.getInputStream(), OpenAIApiResponse.class);
-
-            String content = response.getData().getChoices().get(0).getMessage().getContent();
-
-            // Here you should also provide dummy values for tokens if you want to calculate cost
-            return new OpenAIResult(content, 0);
+            response = objectMapper.readValue(resource.getInputStream(), OpenAIApiResponse.class);
         } else {
+            // The rest of your code...
             String url = properties.getApiBase() + "/openai/deployments/" + properties.getDeploymentName() + "/completions?api-version=" + properties.getApiVersion();
 
             HttpHeaders headers = new HttpHeaders();
@@ -50,19 +49,26 @@ public class OpenAIApiService {
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
-            OpenAIApiResponse response = restTemplate.postForObject(url, entity, OpenAIApiResponse.class);
-
-            // Extract the content
-            String content = response.getData().getChoices().get(0).getMessage().getContent();
-
-            // Calculate cost
-            double costPerInputToken = properties.getPricing().get("gpt-35-turbo").get(properties.getContextLength()).get("input-1k");
-            double costPerOutputToken = properties.getPricing().get("gpt-35-turbo").get(properties.getContextLength()).get("output-1k");
-            double inputTokens = response.getData().getUsage().getPrompt_tokens();
-            double outputTokens = response.getData().getUsage().getCompletion_tokens();
-            double cost = costPerInputToken * inputTokens + costPerOutputToken * outputTokens;
-
-            return new OpenAIResult(content, cost);
+            response = restTemplate.postForObject(url, entity, OpenAIApiResponse.class);
         }
+
+        return processResponse(response);
     }
+
+    public OpenAIResult processResponse(OpenAIApiResponse response) {
+        Data data = response.getData();
+        String content = data.getChoices().get(0).getMessage().getContent();
+
+        // Calculate cost
+        Map<String, Double> modelPrice = properties.getPricing().get(properties.getDeploymentName()).get(properties.getContextLength());
+        double costPerInputToken = modelPrice.get("input-1k") / 1000;
+        double costPerOutputToken = modelPrice.get("output-1k") / 1000;
+        double inputTokens = data.getUsage().getPrompt_tokens();
+        double outputTokens = data.getUsage().getCompletion_tokens();
+        double cost = costPerInputToken * inputTokens + costPerOutputToken * outputTokens;
+
+        return new OpenAIResult(content, cost);
+    }
+
+
 }

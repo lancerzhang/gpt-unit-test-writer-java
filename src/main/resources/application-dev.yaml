@@ -2,20 +2,4 @@ openai:
   api_key: YOUR_API_KEY
   api_base: https://YOUR_RESOURCE_NAME.openai.azure.com
   api_version: 2023-05-15
-  deployment_name: gpt-35-turbo
-  context_length: context-4k
-  pricing:
-    gpt-35-turbo:
-        context-4k:
-          input-1k: 0.0015
-          output-1k: 0.002
-        context-16k:
-          input-1k: 0.003
-          output-1k: 0.004
-    gpt-4:
-      context-8k:
-        input-1k: 0.03
-        output-1k: 0.06
-      context-32k:
-        input-1k: 0.06
-        output-1k: 0.12
+  project_budget: 1

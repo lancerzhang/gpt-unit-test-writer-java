@@ -1,3 +1,33 @@
 spring:
   profiles:
     active: local
+
+openai:
+  deployment_name: gpt-35-turbo
+  context_length: context-4k
+  pricing:
+    gpt-35-turbo:
+      context-4k:
+        input-1k: 0.0015
+        output-1k: 0.002
+      context-16k:
+        input-1k: 0.003
+        output-1k: 0.004
+    gpt-4:
+      context-8k:
+        input-1k: 0.03
+        output-1k: 0.06
+      context-32k:
+        input-1k: 0.06
+        output-1k: 0.12
+
+steps:
+  - name: ut
+    model: gpt-35-turbo
+    context-length: context-4k
+  - name: ut
+    model: gpt-35-turbo
+    context-length: context-4k
+  - name: ut
+    model: gpt-4
+    context-length: context-8k

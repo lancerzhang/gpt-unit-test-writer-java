@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package com.example.demo.model.openai;
 
 import lombok.Getter;
 import lombok.Setter;

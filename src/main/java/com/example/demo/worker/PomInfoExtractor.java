@@ -19,7 +19,7 @@ public class PomInfoExtractor {
         this.doc = builder.parse(pomFilePath);
     }
 
-    private String extractJavaVersion() {
+    public String extractJavaVersion() {
         NodeList nodes = doc.getElementsByTagName("java.version");
         if (nodes.getLength() > 0) {
             return nodes.item(0).getTextContent();
@@ -27,7 +27,7 @@ public class PomInfoExtractor {
         return "";
     }
 
-    private String extractSpringVersion() {
+    public String extractSpringVersion() {
         NodeList nodes = doc.getElementsByTagName("parent");
         for (int i = 0; i < nodes.getLength(); i++) {
             Node node = nodes.item(i);
@@ -41,7 +41,7 @@ public class PomInfoExtractor {
         return "";
     }
 
-    private boolean hasLombokDependency() {
+    public boolean hasLombokDependency() {
         NodeList nodes = doc.getElementsByTagName("dependency");
         for (int i = 0; i < nodes.getLength(); i++) {
             Node node = nodes.item(i);
