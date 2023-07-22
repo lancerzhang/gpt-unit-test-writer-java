@@ -2,6 +2,7 @@ package com.example.demo.worker;
 
 import com.example.demo.config.ApplicationProperties;
 import com.example.demo.config.OpenAIProperties;
+import com.example.demo.exception.BudgetExceededException;
 import com.example.demo.model.CoverageDetails;
 import com.example.demo.model.MethodCoverage;
 import com.example.demo.model.MethodDetails;
@@ -63,8 +64,13 @@ public class ProjectUtWriter {
         Map<String, List<MethodCoverage>> lowCoverageMethods = analyzer.analyzeReport(projectPath);
 
         this.budget = openAIProperties.getProjectBudget();
-        for (String classPathName : lowCoverageMethods.keySet()) {
-            handleClass(classPathName, lowCoverageMethods.get(classPathName));
+        try {
+            for (String classPathName : lowCoverageMethods.keySet()) {
+                handleClass(classPathName, lowCoverageMethods.get(classPathName));
+            }
+        } catch (BudgetExceededException e) {
+            System.err.println(e.getMessage());
+            // Perform any additional steps needed when the budget is exceeded...
         }
     }
 
@@ -100,48 +106,46 @@ public class ProjectUtWriter {
             return;
         }
         for (Step step : applicationProperties.getSteps()) {
-            if (this.budget > 0) {
-                AbstractMap.SimpleEntry<String, String> coverageLines = UtUtils.filterAndConvertCoverageLines(details, coverageDetails);
-                String notCoveredLinesString = coverageLines.getKey();
-                String partlyCoveredLinesString = coverageLines.getValue();
+            AbstractMap.SimpleEntry<String, String> coverageLines = UtUtils.filterAndConvertCoverageLines(details, coverageDetails);
+            String notCoveredLinesString = coverageLines.getKey();
+            String partlyCoveredLinesString = coverageLines.getValue();
 
-                String promptTemplate = loadTemplate();
+            String promptTemplate = loadTemplate();
 
-                String prompt = String.format(promptTemplate, this.projectInfo, classPathName, details.getCodeWithLineNumbers(),
-                        notCoveredLinesString, partlyCoveredLinesString);
+            String prompt = String.format(promptTemplate, this.projectInfo, classPathName, details.getCodeWithLineNumbers(),
+                    notCoveredLinesString, partlyCoveredLinesString);
 
-                System.out.println(prompt);
+            System.out.println(prompt);
 
-                // Call to OpenAI API with the prompt here, and get the generated test
-                OpenAIResult result = openAIApiService.generateUnitTest(step, prompt);
+            // Call to OpenAI API with the prompt here, and get the generated test
+            OpenAIResult result = openAIApiService.generateUnitTest(step, prompt);
 
-                String generatedTest = result.getContent();
+            String generatedTest = result.getContent();
 
-                // Define the path of the test file
-                String testFilePath = projectPath + "/src/test/java/" + classPathName + "Test.java";
+            // Define the path of the test file
+            String testFilePath = projectPath + "/src/test/java/" + classPathName + "Test.java";
 
-                // Backup the original file
-                backupFile(testFilePath);
+            // Backup the original file
+            backupFile(testFilePath);
 
-                // Write the test
-                writeTest(generatedTest, testFilePath);
+            // Write the test
+            writeTest(generatedTest, testFilePath);
 
-                // Run the test
-                boolean testPassed = runTest();
+            // Run the test
+            boolean testPassed = runTest();
 
-                double cost = result.getCost();
-                this.budget = this.budget - cost;
+            double cost = result.getCost();
+            this.budget = this.budget - cost;
+            if (this.budget <= 0) {
+                throw new BudgetExceededException("Budget exceeded. Ending execution.");
+            }
 
-                // If the test did not pass, rollback the changes
-                if (testPassed) {
-                    System.out.println("Test passed for generated unit test.");
-                    return;
-                } else {
-                    rollbackChanges(testFilePath);
-                }
-            } else {
-                System.out.println("Budget exceeded. Ending execution.");
+            // If the test did not pass, rollback the changes
+            if (testPassed) {
+                System.out.println("Test passed for generated unit test.");
                 return;
+            } else {
+                rollbackChanges(testFilePath);
             }
         }
     }
