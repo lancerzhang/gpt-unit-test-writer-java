@@ -17,6 +17,6 @@ public class OpenAIProperties {
     private String apiVersion;
     private String deploymentName;
     private String contextLength;
-    private int projectBudget;
+    private double projectBudget;
     private Map<String, Map<String, Map<String, Double>>> pricing;
 }

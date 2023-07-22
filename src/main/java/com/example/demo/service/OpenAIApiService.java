@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.config.OpenAIProperties;
+import com.example.demo.model.Step;
 import com.example.demo.model.openai.Data;
 import com.example.demo.model.openai.OpenAIApiResponse;
 import com.example.demo.model.openai.OpenAIResult;
@@ -23,12 +24,16 @@ import java.util.Map;
 public class OpenAIApiService {
 
     private final RestTemplate restTemplate = new RestTemplate();
-    @Autowired
-    private OpenAIProperties openAIProperties;
-    @Autowired
-    private ResourceLoader resourceLoader;
+    private final OpenAIProperties openAIProperties;
+    private final ResourceLoader resourceLoader;
 
-    public OpenAIResult generateUnitTest(String prompt) throws IOException {
+    @Autowired
+    public OpenAIApiService(OpenAIProperties openAIProperties, ResourceLoader resourceLoader) {
+        this.openAIProperties = openAIProperties;
+        this.resourceLoader = resourceLoader;
+    }
+
+    public OpenAIResult generateUnitTest(Step step, String prompt) throws IOException {
         OpenAIApiResponse response;
 
         if ("dummy".equals(openAIProperties.getApiBase())) {
@@ -38,7 +43,7 @@ public class OpenAIApiService {
             response = objectMapper.readValue(resource.getInputStream(), OpenAIApiResponse.class);
         } else {
             // The rest of your code...
-            String url = openAIProperties.getApiBase() + "/openai/deployments/" + openAIProperties.getDeploymentName() + "/completions?api-version=" + openAIProperties.getApiVersion();
+            String url = openAIProperties.getApiBase() + "/openai/deployments/" + step.getModel() + "/completions?api-version=" + openAIProperties.getApiVersion();
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -52,15 +57,15 @@ public class OpenAIApiService {
             response = restTemplate.postForObject(url, entity, OpenAIApiResponse.class);
         }
 
-        return processResponse(response);
+        return processResponse(step, response);
     }
 
-    public OpenAIResult processResponse(OpenAIApiResponse response) {
+    public OpenAIResult processResponse(Step step, OpenAIApiResponse response) {
         Data data = response.getData();
         String content = data.getChoices().get(0).getMessage().getContent();
 
         // Calculate cost
-        Map<String, Double> modelPrice = openAIProperties.getPricing().get(openAIProperties.getDeploymentName()).get(openAIProperties.getContextLength());
+        Map<String, Double> modelPrice = openAIProperties.getPricing().get(step.getModel()).get(step.getContextLength());
         double costPerInputToken = modelPrice.get("input-1k") / 1000;
         double costPerOutputToken = modelPrice.get("output-1k") / 1000;
         double inputTokens = data.getUsage().getPrompt_tokens();
@@ -69,6 +74,5 @@ public class OpenAIApiService {
 
         return new OpenAIResult(content, cost);
     }
-
 
 }

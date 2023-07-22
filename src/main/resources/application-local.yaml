@@ -2,4 +2,4 @@ openai:
   api_key: YOUR_API_KEY
   api_base: dummy
   api_version: 2023-05-15
-  project_budget: 0.0000001
+  projectBudget: 0.0000001

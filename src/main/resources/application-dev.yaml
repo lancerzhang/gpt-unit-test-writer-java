@@ -2,4 +2,4 @@ openai:
   api_key: YOUR_API_KEY
   api_base: https://YOUR_RESOURCE_NAME.openai.azure.com
   api_version: 2023-05-15
-  project_budget: 1
+  projectBudget: 1.0

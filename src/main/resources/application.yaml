@@ -3,8 +3,6 @@ spring:
     active: local
 
 openai:
-  deployment_name: gpt-35-turbo
-  context_length: context-4k
   pricing:
     gpt-35-turbo:
       context-4k:

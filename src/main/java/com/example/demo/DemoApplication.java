@@ -1,6 +1,6 @@
 package com.example.demo;
 
-import com.example.demo.worker.ProjectWriter;
+import com.example.demo.worker.ProjectUtWriter;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,7 +14,7 @@ public class DemoApplication {
     }
 
     @Bean
-    public CommandLineRunner commandLineRunner(ProjectWriter writer) {
+    public CommandLineRunner commandLineRunner(ProjectUtWriter writer) {
         return args -> {
             String projectPath = "/Users/lancer/Development/ws/survey-server";
             int limit = 1;
