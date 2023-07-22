@@ -24,25 +24,25 @@ public class OpenAIApiService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     @Autowired
-    private OpenAIProperties properties;
+    private OpenAIProperties openAIProperties;
     @Autowired
     private ResourceLoader resourceLoader;
 
     public OpenAIResult generateUnitTest(String prompt) throws IOException {
         OpenAIApiResponse response;
 
-        if ("dummy".equals(properties.getApiBase())) {
+        if ("dummy".equals(openAIProperties.getApiBase())) {
             // Load the response from the local resource file
             Resource resource = new ClassPathResource("dummy/utResp.json");
             ObjectMapper objectMapper = new ObjectMapper();
             response = objectMapper.readValue(resource.getInputStream(), OpenAIApiResponse.class);
         } else {
             // The rest of your code...
-            String url = properties.getApiBase() + "/openai/deployments/" + properties.getDeploymentName() + "/completions?api-version=" + properties.getApiVersion();
+            String url = openAIProperties.getApiBase() + "/openai/deployments/" + openAIProperties.getDeploymentName() + "/completions?api-version=" + openAIProperties.getApiVersion();
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("api-key", properties.getApiKey());
+            headers.set("api-key", openAIProperties.getApiKey());
 
             Map<String, Object> body = new HashMap<>();
             body.put("prompt", prompt);
@@ -60,7 +60,7 @@ public class OpenAIApiService {
         String content = data.getChoices().get(0).getMessage().getContent();
 
         // Calculate cost
-        Map<String, Double> modelPrice = properties.getPricing().get(properties.getDeploymentName()).get(properties.getContextLength());
+        Map<String, Double> modelPrice = openAIProperties.getPricing().get(openAIProperties.getDeploymentName()).get(openAIProperties.getContextLength());
         double costPerInputToken = modelPrice.get("input-1k") / 1000;
         double costPerOutputToken = modelPrice.get("output-1k") / 1000;
         double inputTokens = data.getUsage().getPrompt_tokens();

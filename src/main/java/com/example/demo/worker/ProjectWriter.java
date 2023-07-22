@@ -1,5 +1,6 @@
 package com.example.demo.worker;
 
+import com.example.demo.config.OpenAIProperties;
 import com.example.demo.model.CoverageDetails;
 import com.example.demo.model.MethodCoverage;
 import com.example.demo.model.MethodDetails;
@@ -22,6 +23,8 @@ public class ProjectWriter {
     private JavaParser parser;
     @Autowired
     private OpenAIApiService openAIApiService;
+    @Autowired
+    private OpenAIProperties openAIProperties;
     @Value("classpath:prompts/ut.txt")
     private Resource utTemplateResource;
 
@@ -29,6 +32,7 @@ public class ProjectWriter {
     private PomInfoExtractor pomExtractor;
     private String projectInfo;
     private CoverageDetailExtractor extractor;
+    private int budget;
 
 
     public void setProjectPath(String projectPath) throws Exception {
@@ -45,6 +49,7 @@ public class ProjectWriter {
         System.out.println("start to analyze jacoco report");
         Map<String, List<MethodCoverage>> lowCoverageMethods = analyzer.analyzeReport(projectPath);
 
+        this.budget = openAIProperties.getProjectBudget();
         for (String classPathName : lowCoverageMethods.keySet()) {
             handleClass(classPathName, lowCoverageMethods.get(classPathName));
         }
@@ -73,7 +78,7 @@ public class ProjectWriter {
                 continue;
             }
             MethodDetails details = methodDetailsMap.get(methodName);
-            MethodWriter writer = new MethodWriter(this.projectPath, this.projectInfo, this.openAIApiService, this.utTemplateResource);
+            MethodWriter writer = new MethodWriter(this.projectPath, this.projectInfo, this.openAIApiService, this.utTemplateResource, this.budget);
             writer.generateUnitTest(classPathName, details, coverageDetails);
         }
     }

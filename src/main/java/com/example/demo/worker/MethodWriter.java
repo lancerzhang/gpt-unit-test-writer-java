@@ -24,12 +24,14 @@ public class MethodWriter {
     private final OpenAIApiService openAIApiService;
     private final Resource utTemplateResource;
     private int cost = 0;
+    private int budget;
 
-    public MethodWriter(String projectPath, String projectInfo, OpenAIApiService openAIApiService, Resource utTemplateResource) {
+    public MethodWriter(String projectPath, String projectInfo, OpenAIApiService openAIApiService, Resource utTemplateResource, int budget) {
         this.projectPath = projectPath;
         this.projectInfo = projectInfo;
         this.openAIApiService = openAIApiService;
         this.utTemplateResource = utTemplateResource;
+        this.budget = budget;
     }
 
     public String loadTemplate() throws IOException {
