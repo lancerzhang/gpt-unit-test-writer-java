@@ -2,4 +2,5 @@ You are working on %s project, you will write unit tests to for a new class %s a
 
 %s
 
-The tests should be as simple as possible, but still cover all the functionality. You will output the code only. Do not comment on what the code does. The code should be fully functional, can be executed without any modification.
+The tests should be as simple as possible, but still cover all the functionality. You will output the code only.
+Do not comment on what the code does. The code should be fully functional, can be executed without any modification.

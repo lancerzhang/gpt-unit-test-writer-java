@@ -31,7 +31,7 @@ public class ProjectInfoExtractor {
         if (nodes.getLength() > 0) {
             return nodes.item(0).getTextContent();
         }
-        return "";
+        return null;
     }
 
     protected String extractSpringVersion() {
@@ -45,7 +45,7 @@ public class ProjectInfoExtractor {
                 }
             }
         }
-        return "";
+        return null;
     }
 
     protected String determineJUnitVersion() throws IOException {
@@ -93,10 +93,9 @@ public class ProjectInfoExtractor {
         String springVersion = extractSpringVersion();
         if (springVersion.startsWith("2.") && Integer.parseInt(springVersion.split("\\.")[1]) >= 5) {
             return "JUnit 5";
+        } else {
+            return "JUnit 4";
         }
-
-        // Return default JUnit version if not found
-        return "JUnit 4";
     }
 
     public String getProjectInfo() throws IOException {
@@ -104,8 +103,23 @@ public class ProjectInfoExtractor {
         String springVersion = extractSpringVersion();
         String junitVersion = determineJUnitVersion();
 
-        return "Java " + javaVersion +
-                ", Spring Boot " + springVersion +
-                ", " + junitVersion;
+        StringBuilder resultBuilder = new StringBuilder();
+        if (javaVersion != null) {
+            resultBuilder.append("Java ").append(javaVersion).append(",");
+        }
+        if (springVersion != null) {
+            resultBuilder.append("Spring Boot ").append(springVersion).append(",");
+        }
+        if (junitVersion != null) {
+            resultBuilder.append(junitVersion);
+        }
+
+        // Remove the trailing comma if it exists
+        String result = resultBuilder.toString();
+        if (result.endsWith(",")) {
+            result = result.substring(0, result.length() - 1);
+        }
+
+        return result;
     }
 }

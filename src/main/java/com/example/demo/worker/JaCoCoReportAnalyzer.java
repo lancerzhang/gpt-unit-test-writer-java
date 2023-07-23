@@ -1,7 +1,6 @@
 package com.example.demo.worker;
 
 import com.example.demo.model.MethodCoverage;
-import org.springframework.stereotype.Component;
 import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -18,7 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component
 public class JaCoCoReportAnalyzer {
 
     public Map<String, List<MethodCoverage>> analyzeReport(String projectPath) throws Exception {

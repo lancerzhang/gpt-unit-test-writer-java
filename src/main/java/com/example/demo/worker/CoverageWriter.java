@@ -28,37 +28,36 @@ import java.util.Map;
 @Service
 public class CoverageWriter {
 
-    @Autowired
-    private JaCoCoReportAnalyzer analyzer;
-    @Autowired
-    private JavaParser parser;
+    private final Map<String, String> backupFilePathMap = new HashMap<>();
+
+    private final JaCoCoReportAnalyzer analyzer = new JaCoCoReportAnalyzer();
+
+    private final JavaParser parser = new JavaParser();
     @Autowired
     private ApplicationProperties applicationProperties;
     @Autowired
     private OpenAIApiService openAIApiService;
     @Autowired
     private OpenAIProperties openAIProperties;
-
     @Value("classpath:prompts/coverage_exists.txt")
-    private Resource utTemplateResource;
-
+    private Resource coverageExistsResource;
+    @Value("classpath:prompts/coverage_new.txt")
+    private Resource coverageNewResource;
     private String projectPath;
-    private ProjectInfoExtractor projectInfoExtractor;
     private String projectInfo;
     private CoverageDetailExtractor extractor;
     private double budget;
-    private Map<String, String> backupFilePathMap = new HashMap<>();
 
     public void setProjectPath(String projectPath) throws Exception {
         this.projectPath = projectPath;
-        this.projectInfoExtractor = new ProjectInfoExtractor(projectPath + "/pom.xml");
+        ProjectInfoExtractor projectInfoExtractor = new ProjectInfoExtractor(projectPath + "/pom.xml");
         this.projectInfo = projectInfoExtractor.getProjectInfo();
         this.extractor = new CoverageDetailExtractor(projectPath);
     }
 
     public void generateUnitTest() throws Exception {
         System.out.println("start to run mvn test for: " + projectPath);
-//        analyzer.runJaCoCo(projectPath);
+        analyzer.runJaCoCo(projectPath);
 
         System.out.println("start to analyze jacoco report");
         Map<String, List<MethodCoverage>> lowCoverageMethods = analyzer.analyzeReport(projectPath);
@@ -106,15 +105,24 @@ public class CoverageWriter {
             return;
         }
         for (Step step : applicationProperties.getSteps().get("coverage")) {
+            // Define the path of the test file
+            String testFilePath = projectPath + "/src/test/java/" + classPathName + "Test.java";
+
+            // Backup the original file
+            backupFile(testFilePath);
+
             AbstractMap.SimpleEntry<String, String> coverageLines = UtUtils.filterAndConvertCoverageLines(details, coverageDetails);
             String notCoveredLinesString = coverageLines.getKey();
             String partlyCoveredLinesString = coverageLines.getValue();
 
-            String promptTemplate = loadTemplate();
+            String promptTemplate = loadTemplate(testFilePath);
 
             String prompt = String.format(promptTemplate, this.projectInfo, classPathName, details.getCodeWithLineNumbers(),
                     notCoveredLinesString, partlyCoveredLinesString);
 
+            if (partlyCoveredLinesString.length() > 0) {
+                prompt += "The following lines are partly covered:\n" + partlyCoveredLinesString;
+            }
             System.out.println(prompt);
 
             // Call to OpenAI API with the prompt here, and get the generated test
@@ -122,11 +130,6 @@ public class CoverageWriter {
 
             String generatedTest = result.getContent();
 
-            // Define the path of the test file
-            String testFilePath = projectPath + "/src/test/java/" + classPathName + "Test.java";
-
-            // Backup the original file
-            backupFile(testFilePath);
 
             // Write the test
             writeTest(generatedTest, testFilePath);
@@ -150,16 +153,17 @@ public class CoverageWriter {
         }
     }
 
-    public void backupFile(String filePath) throws IOException {
+    public boolean backupFile(String filePath) throws IOException {
         File originalFile = new File(filePath);
         if (!originalFile.exists()) {
             System.out.println("Original file doesn't exist at path " + filePath);
-            return;
+            return false;
         }
         String backupFilePath = filePath + ".bak";
         backupFilePathMap.put(filePath, backupFilePath);
         File backupFile = new File(backupFilePath);
         Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        return true;
     }
 
     public void writeTest(String generatedTest, String filePathStr) throws IOException {
@@ -196,8 +200,11 @@ public class CoverageWriter {
         }
     }
 
-    public String loadTemplate() throws IOException {
-        byte[] bytes = FileCopyUtils.copyToByteArray(utTemplateResource.getInputStream());
+    public String loadTemplate(String testFilePath) throws IOException {
+        File testFile = new File(testFilePath);
+        Resource resourceToUse = testFile.exists() ? coverageExistsResource : coverageNewResource;
+
+        byte[] bytes = FileCopyUtils.copyToByteArray(resourceToUse.getInputStream());
         return new String(bytes, StandardCharsets.UTF_8);
     }
 }
