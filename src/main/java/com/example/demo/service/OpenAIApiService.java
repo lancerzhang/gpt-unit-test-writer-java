@@ -60,7 +60,7 @@ public class OpenAIApiService {
         return processResponse(step, response);
     }
 
-    public OpenAIResult processResponse(Step step, OpenAIApiResponse response) {
+    protected OpenAIResult processResponse(Step step, OpenAIApiResponse response) {
         Data data = response.getData();
         String content = data.getChoices().get(0).getMessage().getContent();
 

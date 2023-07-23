@@ -43,7 +43,7 @@ public class CoverageWriter {
     private Resource utTemplateResource;
 
     private String projectPath;
-    private PomInfoExtractor pomExtractor;
+    private ProjectInfoExtractor projectInfoExtractor;
     private String projectInfo;
     private CoverageDetailExtractor extractor;
     private double budget;
@@ -51,8 +51,8 @@ public class CoverageWriter {
 
     public void setProjectPath(String projectPath) throws Exception {
         this.projectPath = projectPath;
-        this.pomExtractor = new PomInfoExtractor(projectPath + "/pom.xml");
-        this.projectInfo = pomExtractor.getProjectInfo();
+        this.projectInfoExtractor = new ProjectInfoExtractor(projectPath + "/pom.xml");
+        this.projectInfo = projectInfoExtractor.getProjectInfo();
         this.extractor = new CoverageDetailExtractor(projectPath);
     }
 

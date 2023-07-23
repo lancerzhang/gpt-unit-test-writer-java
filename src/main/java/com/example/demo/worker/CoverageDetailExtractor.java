@@ -44,5 +44,4 @@ public class CoverageDetailExtractor {
         return new CoverageDetails(notCovered, partlyCovered);
     }
 
-
 }

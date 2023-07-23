@@ -56,7 +56,7 @@ public class JavaParser {
         return methodDetailsMap;
     }
 
-    private boolean isClassUsedInMethod(String className, MethodDeclaration method) {
+    protected boolean isClassUsedInMethod(String className, MethodDeclaration method) {
         String shortName = className.substring(className.lastIndexOf('.') + 1);
         return method.toString().contains(shortName);
     }
