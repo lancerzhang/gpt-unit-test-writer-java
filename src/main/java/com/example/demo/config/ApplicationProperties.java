@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -14,6 +15,6 @@ import java.util.List;
 @ConfigurationProperties(prefix = "")
 public class ApplicationProperties {
 
-    private List<Step> steps;
+    private Map<String, List<Step>> steps;
 
 }

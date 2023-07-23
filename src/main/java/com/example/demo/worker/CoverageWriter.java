@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class ProjectUtWriter {
+public class CoverageWriter {
 
     @Autowired
     private JaCoCoReportAnalyzer analyzer;
@@ -39,7 +39,7 @@ public class ProjectUtWriter {
     @Autowired
     private OpenAIProperties openAIProperties;
 
-    @Value("classpath:prompts/ut.txt")
+    @Value("classpath:prompts/coverage_exists.txt")
     private Resource utTemplateResource;
 
     private String projectPath;
@@ -58,7 +58,7 @@ public class ProjectUtWriter {
 
     public void generateUnitTest() throws Exception {
         System.out.println("start to run mvn test for: " + projectPath);
-        analyzer.runJaCoCo(projectPath);
+//        analyzer.runJaCoCo(projectPath);
 
         System.out.println("start to analyze jacoco report");
         Map<String, List<MethodCoverage>> lowCoverageMethods = analyzer.analyzeReport(projectPath);
@@ -105,7 +105,7 @@ public class ProjectUtWriter {
         if (details == null) {
             return;
         }
-        for (Step step : applicationProperties.getSteps()) {
+        for (Step step : applicationProperties.getSteps().get("coverage")) {
             AbstractMap.SimpleEntry<String, String> coverageLines = UtUtils.filterAndConvertCoverageLines(details, coverageDetails);
             String notCoveredLinesString = coverageLines.getKey();
             String partlyCoveredLinesString = coverageLines.getValue();

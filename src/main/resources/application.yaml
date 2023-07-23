@@ -20,12 +20,17 @@ openai:
         output-1k: 0.12
 
 steps:
-  - name: ut
-    model: gpt-35-turbo
-    context-length: context-4k
-  - name: ut
-    model: gpt-35-turbo
-    context-length: context-4k
-  - name: ut
-    model: gpt-4
-    context-length: context-8k
+  coverage:
+    - model: gpt-35-turbo
+      context-length: context-4k
+    - model: gpt-35-turbo
+      context-length: context-4k
+    - model: gpt-4
+      context-length: context-8k
+  mutation:
+    - model: gpt-35-turbo
+      context-length: context-4k
+    - model: gpt-35-turbo
+      context-length: context-4k
+    - model: gpt-4
+      context-length: context-8k
