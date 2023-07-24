@@ -1,0 +1,27 @@
+{
+  "msg": "success to trigger the API",
+  "code": "00000",
+  "data": {
+    "id": "chatcmpl-7FMw5nBSebsOcz0DflieR4kGC62Rj",
+    "object": "chat.completion",
+    "created": 1.683897441E9,
+    "model": "gpt-35-turbo",
+    "choices": [
+      {
+        "index": 0.0,
+        "finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "Here are the simple JUnit 5 unit tests for the `SurveyReply` class and its `prePersist()` method:\n\n```java\nimport static org.junit.jupiter.api.Assertions.assertEquals;\nimport static org.junit.jupiter.api.Assertions.assertNotNull;\n\nimport java.util.Date;\n\nimport org.junit.jupiter.api.Test;\nimport org.springframework.boot.test.context.SpringBootTest;\n\n@SpringBootTest\npublic class SurveyReplyTest {\n\n    @Test\n    public void testPrePersist() {\n        SurveyReply surveyReply = new SurveyReply();\n        surveyReply.prePersist();\n\n        Date currentDate = new Date();\n\n        assertNotNull(surveyReply.getCreatedAt());\n        assertNotNull(surveyReply.getLastModified());\n        assertEquals(currentDate, surveyReply.getCreatedAt());\n        assertEquals(currentDate, surveyReply.getLastModified());\n    }\n}\n```\n\nNote: The `SurveyReply` class and its getter methods (e.g., `getCreatedAt()` and `getLastModified()`) should be implemented appropriately in the actual code. This test assumes that the `prePersist()` method updates the `createdAt` and `lastModified` fields of the `SurveyReply` class."
+        }
+      }
+    ],
+    "usage": {
+      "completion_tokens": 183.0,
+      "prompt_tokens": 25.0,
+      "total_tokens": 208.0
+    }
+  },
+  "timestamp": 1683897447785,
+  "requestId": "72ae5d90-d0c1-4342-9394-b1ea5beda43f"
+}

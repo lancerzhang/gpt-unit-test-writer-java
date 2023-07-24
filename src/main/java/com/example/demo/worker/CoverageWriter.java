@@ -108,14 +108,21 @@ public class CoverageWriter {
             // Define the path of the test file
             String testFilePath = projectPath + "/src/test/java/" + classPathName + "Test.java";
 
-            // Backup the original file
-            backupFile(testFilePath);
+            Boolean hasTestFile = false;
+            File originalFile = new File(testFilePath);
+            if (originalFile.exists()) {
+                System.out.println("Original file doesn't exist at path " + testFilePath);
+                hasTestFile = true;
+                // Backup the original file
+                backupFile(testFilePath);
+            }
+
 
             AbstractMap.SimpleEntry<String, String> coverageLines = UtUtils.filterAndConvertCoverageLines(details, coverageDetails);
             String notCoveredLinesString = coverageLines.getKey();
             String partlyCoveredLinesString = coverageLines.getValue();
 
-            String promptTemplate = loadTemplate(testFilePath);
+            String promptTemplate = loadTemplate(hasTestFile);
 
             String prompt = String.format(promptTemplate, this.projectInfo, classPathName, details.getCodeWithLineNumbers(),
                     notCoveredLinesString, partlyCoveredLinesString);
@@ -126,7 +133,7 @@ public class CoverageWriter {
             System.out.println(prompt);
 
             // Call to OpenAI API with the prompt here, and get the generated test
-            OpenAIResult result = openAIApiService.generateUnitTest(step, prompt);
+            OpenAIResult result = openAIApiService.generateUnitTest(step, prompt, hasTestFile);
 
             String generatedTest = result.getContent();
 
@@ -153,17 +160,12 @@ public class CoverageWriter {
         }
     }
 
-    public boolean backupFile(String filePath) throws IOException {
+    public void backupFile(String filePath) throws IOException {
         File originalFile = new File(filePath);
-        if (!originalFile.exists()) {
-            System.out.println("Original file doesn't exist at path " + filePath);
-            return false;
-        }
         String backupFilePath = filePath + ".bak";
         backupFilePathMap.put(filePath, backupFilePath);
         File backupFile = new File(backupFilePath);
         Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        return true;
     }
 
     public void writeTest(String generatedTest, String filePathStr) throws IOException {
@@ -200,9 +202,8 @@ public class CoverageWriter {
         }
     }
 
-    public String loadTemplate(String testFilePath) throws IOException {
-        File testFile = new File(testFilePath);
-        Resource resourceToUse = testFile.exists() ? coverageExistsResource : coverageNewResource;
+    public String loadTemplate(boolean hasTestFile) throws IOException {
+        Resource resourceToUse = hasTestFile ? coverageExistsResource : coverageNewResource;
 
         byte[] bytes = FileCopyUtils.copyToByteArray(resourceToUse.getInputStream());
         return new String(bytes, StandardCharsets.UTF_8);

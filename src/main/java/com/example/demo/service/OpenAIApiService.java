@@ -33,12 +33,17 @@ public class OpenAIApiService {
         this.resourceLoader = resourceLoader;
     }
 
-    public OpenAIResult generateUnitTest(Step step, String prompt) throws IOException {
+    public OpenAIResult generateUnitTest(Step step, String prompt, boolean hasTestFile) throws IOException {
         OpenAIApiResponse response;
 
         if ("dummy".equals(openAIProperties.getApiBase())) {
             // Load the response from the local resource file
-            Resource resource = new ClassPathResource("dummy/utResp.json");
+            Resource resource;
+            if (hasTestFile) {
+                resource = new ClassPathResource("dummy/coverage_exists_1.json");
+            } else {
+                resource = new ClassPathResource("dummy/coverage_new_1.json");
+            }
             ObjectMapper objectMapper = new ObjectMapper();
             response = objectMapper.readValue(resource.getInputStream(), OpenAIApiResponse.class);
         } else {

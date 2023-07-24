@@ -1,0 +1,27 @@
+{
+  "msg": "success to trigger the API",
+  "code": "00000",
+  "data": {
+    "id": "chatcmpl-7FMw5nBSebsOcz0DflieR4kGC62Rj",
+    "object": "chat.completion",
+    "created": 1.683897441E9,
+    "model": "gpt-35-turbo",
+    "choices": [
+      {
+        "index": 0.0,
+        "finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "**New Imports:**\n\n```java\nimport org.junit.jupiter.api.Test;\nimport java.util.Date;\nimport static org.junit.jupiter.api.Assertions.assertEquals;\n```\n\n**New Test Method:**\n\n```java\npublic class SurveyReplyTest {\n\n    @Test\n    public void testPrePersist_WhenCalled_ShouldSetCreatedAtAndLastModified() {\n        // Arrange\n        SurveyReply surveyReply = new SurveyReply();\n\n        // Act\n        surveyReply.prePersist();\n\n        // Assert\n        Date currentDate = new Date();\n        assertEquals(currentDate, surveyReply.getCreatedAt(), \"CreatedAt should be set to current date\");\n        assertEquals(currentDate, surveyReply.getLastModified(), \"LastModified should be set to current date\");\n    }\n}\n```\n\nPlease note that I have assumed the class `SurveyReply` has getter methods `getCreatedAt()` and `getLastModified()` to retrieve the values of `createdAt` and `lastModified` respectively, as the original class snippet you provided didn't include them. The test method ensures that when `prePersist()` is called, the `createdAt` and `lastModified` fields are set to the current date, and then it checks if they were set correctly using `assertEquals`."
+        }
+      }
+    ],
+    "usage": {
+      "completion_tokens": 183.0,
+      "prompt_tokens": 25.0,
+      "total_tokens": 208.0
+    }
+  },
+  "timestamp": 1683897447785,
+  "requestId": "72ae5d90-d0c1-4342-9394-b1ea5beda43f"
+}
