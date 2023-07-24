@@ -22,6 +22,12 @@ public class ChangeHelper {
             String backupFilePath = originalFilePath + ".bak";
             File backupFile = new File(backupFilePath);
             this.backupFilePath = backupFilePath;
+
+            // Check if backup file exists, and delete if it does
+            if (backupFile.exists()) {
+                backupFile.delete();
+            }
+
             Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
     }

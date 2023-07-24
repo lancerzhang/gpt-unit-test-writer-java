@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -25,12 +24,10 @@ public class OpenAIApiService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final OpenAIProperties openAIProperties;
-    private final ResourceLoader resourceLoader;
 
     @Autowired
-    public OpenAIApiService(OpenAIProperties openAIProperties, ResourceLoader resourceLoader) {
+    public OpenAIApiService(OpenAIProperties openAIProperties) {
         this.openAIProperties = openAIProperties;
-        this.resourceLoader = resourceLoader;
     }
 
     public OpenAIResult generateUnitTest(Step step, String prompt, boolean hasTestFile) throws IOException {
@@ -47,7 +44,6 @@ public class OpenAIApiService {
             ObjectMapper objectMapper = new ObjectMapper();
             response = objectMapper.readValue(resource.getInputStream(), OpenAIApiResponse.class);
         } else {
-            // The rest of your code...
             String url = openAIProperties.getApiBase() + "/openai/deployments/" + step.getModel() + "/completions?api-version=" + openAIProperties.getApiVersion();
 
             HttpHeaders headers = new HttpHeaders();

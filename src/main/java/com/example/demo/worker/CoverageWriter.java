@@ -70,7 +70,7 @@ public class CoverageWriter {
         }
     }
 
-    public void handleClass(String classPathName, List<MethodCoverage> methods) throws Exception {
+    protected void handleClass(String classPathName, List<MethodCoverage> methods) throws Exception {
         System.out.println("Low coverage methods in class: " + classPathName + ":");
 
         if (classPathName.contains("$")) {
@@ -97,7 +97,7 @@ public class CoverageWriter {
         }
     }
 
-    private void handleMethod(String classPathName, MethodDetails details, CoverageDetails coverageDetails) throws IOException {
+    protected void handleMethod(String classPathName, MethodDetails details, CoverageDetails coverageDetails) throws IOException {
         if (details == null) {
             return;
         }
@@ -156,14 +156,14 @@ public class CoverageWriter {
         }
     }
 
-    public boolean runTest() {
+    protected boolean runTest() {
         // This is where you would implement logic to run the test.
         // If the test fails, return false. If the test passes, return true.
         return true;
     }
 
 
-    public String loadTemplate(boolean hasTestFile) throws IOException {
+    protected String loadTemplate(boolean hasTestFile) throws IOException {
         Resource resourceToUse = hasTestFile ? coverageExistsResource : coverageNewResource;
 
         byte[] bytes = FileCopyUtils.copyToByteArray(resourceToUse.getInputStream());

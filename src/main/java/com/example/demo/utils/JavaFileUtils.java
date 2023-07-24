@@ -80,7 +80,7 @@ public class JavaFileUtils {
         CompilationUnit importCu = StaticJavaParser.parse(imports);
         // Add all imports to the existing CompilationUnit
         for (ImportDeclaration id : importCu.getImports()) {
-            cu.addImport(id.getNameAsString());
+            cu.addImport(id);
         }
     }
 
@@ -118,26 +118,24 @@ public class JavaFileUtils {
 
         if (codeBlocks.isEmpty()) {
             throw new IllegalArgumentException("No code block found in the provided markdown.");
+        } else if (codeBlocks.size() > 1) {
+            throw new IllegalArgumentException("More than one code blocks found.");
         }
 
         if (testFile.exists()) {
-            // If test file already exists, insert the imports and method at the appropriate positions
-            if (codeBlocks.size() < 2) {
-                throw new IllegalArgumentException("Not enough code blocks found in the provided markdown.");
-            }
 
             // Parse the existing test file as a CompilationUnit
             CompilationUnit cu = StaticJavaParser.parse(testFile);
 
             // Insert imports and method
-            insertImports(codeBlocks.get(0), cu);  // 1st block
-            insertMethods(codeBlocks.get(1), cu);   // 2nd block
+            insertImports(codeBlocks.get(0), cu);
+            insertMethods(codeBlocks.get(0), cu);
 
             // Write the modified CompilationUnit back to the file
             Files.write(testFile.toPath(), cu.toString().getBytes(StandardCharsets.UTF_8));
         } else {
             // If test file does not exist, create it and write the new test
-            String contentToWrite = codeBlocks.get(0); // 1st block
+            String contentToWrite = codeBlocks.get(0);
 
             contentToWrite = insertPackage(contentToWrite, classPathName);
 

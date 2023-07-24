@@ -2,10 +2,9 @@ You are working on %s project, you will write one or more unit tests to improve 
 
 %s
 
-You should return 2 code blocks only, one is for new imports, another is for new test methods, do not comment on what the code does.
-The code in code block should be fully functional.
-There is test file already, you just need to provide the new imports and test method code.
-To avoid conflict, do not use any Lifecycle Method Annotations like 'BeforeEach', add 6 random char at end of each method name.
+You will output the code only, in one code block.
+Do not comment on what the code does. The code should be fully functional, can be executed without any modification.
+There is test file already, to avoid conflict, do not use any Lifecycle Method Annotations like 'BeforeEach', add 6 random char at end of each method name.
 
 You have run jacoco, the report is showing that, the following lines are not covered by unit tests:
 %s

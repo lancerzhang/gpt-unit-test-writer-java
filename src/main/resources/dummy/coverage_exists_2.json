@@ -12,7 +12,7 @@
         "finish_reason": "stop",
         "message": {
           "role": "assistant",
-          "content": "**New Imports:**\n```java\nimport static org.junit.jupiter.api.Assertions.*;\nimport org.junit.jupiter.api.Test;\nimport java.util.Date;\n```\n\n**New Test Method:**\n```java\n@Test\nvoid prePersistSetsCreatedAtAndLastModified() {\n    // Arrange\n    SurveyReply surveyReply = new SurveyReply();\n    \n    // Act\n    surveyReply.prePersist();\n    \n    // Assert\n    assertNotNull(surveyReply.getCreatedAt());\n    assertNotNull(surveyReply.getLastModified());\n}\n```\n\nPlease make sure to replace \"SurveyReply\" with the actual class name if it is different. Also, ensure that you have proper imports for the classes you're using in your actual test file."
+          "content": "```java\nimport static org.junit.jupiter.api.Assertions.assertNotNull;\nimport static org.mockito.Mockito.*;\n\nimport java.util.Date;\n\nimport org.junit.jupiter.api.Test;\n\nclass SurveyReplyTest {\n\n    @Test\n    void testPrePersist_randomChars() {\n        // Arrange\n        SurveyReply surveyReply = new SurveyReply();\n\n        // Act\n        surveyReply.prePersist();\n\n        // Assert\n        assertNotNull(surveyReply.getCreatedAt());\n        assertNotNull(surveyReply.getLastModified());\n    }\n}\n```\n\nAssuming `SurveyReply` class has getter methods for `createdAt` and `lastModified`. The above test ensures that the `prePersist` method sets both `createdAt` and `lastModified` fields to non-null values. Note that I've added \"randomChars\" to the end of the test method name to comply with your requirement of using random characters at the end of the method names."
         }
       }
     ],
