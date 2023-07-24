@@ -14,6 +14,8 @@ import com.example.demo.utils.ChangeHelper;
 import com.example.demo.utils.CommandUtils;
 import com.example.demo.utils.CoverageUtils;
 import com.example.demo.utils.JavaFileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -29,6 +31,7 @@ import java.util.Map;
 
 @Service
 public class CoverageWriter {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final JaCoCoReportAnalyzer analyzer = new JaCoCoReportAnalyzer();
 
@@ -54,12 +57,12 @@ public class CoverageWriter {
     }
 
     public void generateUnitTest() throws Exception {
-        System.out.println("start to run mvn test for: " + projectPath);
+        logger.info("start to run mvn test for: " + projectPath);
         CommandUtils.runJaCoCo(projectPath);
 
         this.extractor = new CoverageDetailExtractor(projectPath);
 
-        System.out.println("start to analyze jacoco report");
+        logger.info("start to analyze jacoco report");
         Map<String, List<MethodCoverage>> lowCoverageMethods = analyzer.analyzeReport(projectPath);
 
         this.budget = openAIProperties.getProjectBudget();
@@ -68,13 +71,12 @@ public class CoverageWriter {
                 handleClass(classPathName, lowCoverageMethods.get(classPathName));
             }
         } catch (BudgetExceededException e) {
-            System.err.println(e.getMessage());
-            // Perform any additional steps needed when the budget is exceeded...
+            logger.error("Exceed project budget.", e);
         }
     }
 
     protected void handleClass(String classPathName, List<MethodCoverage> methods) throws Exception {
-        System.out.println("Low coverage methods in class: " + classPathName + ":");
+        logger.info("Low coverage methods in class: " + classPathName + ":");
 
         if (classPathName.contains("$")) {
             // ignore nested class
@@ -90,7 +92,7 @@ public class CoverageWriter {
 
         for (MethodCoverage method : methods) {
             String methodName = method.getMethodName();
-            System.out.println("\tmethodName: " + methodName);
+            logger.info("\tmethodName: " + methodName);
             if (methodName.contains("$") || methodName.contains("<")) {
                 // ignore nested method
                 continue;
@@ -105,6 +107,10 @@ public class CoverageWriter {
             return;
         }
         for (Step step : applicationProperties.getSteps().get("coverage")) {
+            if (this.budget <= 0) {
+                throw new BudgetExceededException("Budget exceeded. Ending execution.");
+            }
+
             // Define the path of the test file
             String testFilePath = projectPath + "/src/test/java/" + classPathName + "Test.java";
 
@@ -118,23 +124,31 @@ public class CoverageWriter {
             ChangeHelper changeHelper = new ChangeHelper(testFilePath, hasTestFile);
             changeHelper.backupFile();
 
+            AbstractMap.SimpleEntry<String, String> coverageLines = CoverageUtils.filterAndConvertCoverageLines(details, coverageDetails);
+            String notCoveredLinesString = coverageLines.getKey();
+            String partlyCoveredLinesString = coverageLines.getValue();
+
+            String promptTemplate = loadTemplate(hasTestFile);
+
+            String prompt = String.format(promptTemplate, this.projectInfo, classPathName, details.getCodeWithLineNumbers(),
+                    notCoveredLinesString, partlyCoveredLinesString);
+
+            if (partlyCoveredLinesString.length() > 0) {
+                prompt += "The following lines are partly covered:\n" + partlyCoveredLinesString;
+            }
+            logger.info(prompt);
+
+            // Call to OpenAI API with the prompt here, and get the generated test
+            OpenAIResult result = openAIApiService.generateUnitTest(step, prompt, hasTestFile);
+            double cost = result.getCost();
+            this.budget = this.budget - cost;
+
             try {
-                AbstractMap.SimpleEntry<String, String> coverageLines = CoverageUtils.filterAndConvertCoverageLines(details, coverageDetails);
-                String notCoveredLinesString = coverageLines.getKey();
-                String partlyCoveredLinesString = coverageLines.getValue();
+                List<String> codeBlocks = JavaFileUtils.extractMarkdownCodeBlocks(result.getContent());
 
-                String promptTemplate = loadTemplate(hasTestFile);
-
-                String prompt = String.format(promptTemplate, this.projectInfo, classPathName, details.getCodeWithLineNumbers(),
-                        notCoveredLinesString, partlyCoveredLinesString);
-
-                if (partlyCoveredLinesString.length() > 0) {
-                    prompt += "The following lines are partly covered:\n" + partlyCoveredLinesString;
+                if (codeBlocks.size() != 1) {
+                    throw new FailedGeneratedTestException("Expect one code block in openAI response but it's not.");
                 }
-                System.out.println(prompt);
-
-                // Call to OpenAI API with the prompt here, and get the generated test
-                OpenAIResult result = openAIApiService.generateUnitTest(step, prompt, hasTestFile);
 
                 String generatedTest = result.getContent();
 
@@ -144,11 +158,6 @@ public class CoverageWriter {
                 // Run the test
                 CommandUtils.runTest(this.projectPath, classPathName);
 
-                double cost = result.getCost();
-                this.budget = this.budget - cost;
-                if (this.budget <= 0) {
-                    throw new BudgetExceededException("Budget exceeded. Ending execution.");
-                }
             } catch (FailedGeneratedTestException e) {
                 changeHelper.rollbackChanges();
             }

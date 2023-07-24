@@ -17,7 +17,6 @@ public class DemoApplication {
     public CommandLineRunner commandLineRunner(CoverageWriter writer) {
         return args -> {
             String projectPath = "/Users/lancer/Development/ws/survey-server";
-            int limit = 1;
             writer.setProjectPath(projectPath);
             writer.generateUnitTest();
         };

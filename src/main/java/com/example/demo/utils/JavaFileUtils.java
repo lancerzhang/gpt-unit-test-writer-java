@@ -16,6 +16,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -128,6 +130,18 @@ public class JavaFileUtils {
             throw new FailedGeneratedTestException("Failed to write unit test to file.");
         }
 
+    }
+
+    public static List<String> extractMarkdownCodeBlocks(String input) {
+        List<String> codeBlocks = new ArrayList<>();
+        Pattern pattern = Pattern.compile("```java\\s*(.*?)\\s*```", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(input);
+
+        while (matcher.find()) {
+            codeBlocks.add(matcher.group(1));
+        }
+
+        return codeBlocks;
     }
 
 }
