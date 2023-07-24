@@ -1,5 +1,6 @@
 package com.example.demo.utils;
 
+import com.example.demo.exception.FailedGeneratedTestException;
 import com.example.demo.model.MethodDetails;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -15,8 +16,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -63,18 +62,6 @@ public class JavaFileUtils {
         return method.toString().contains(shortName);
     }
 
-    public static List<String> extractMarkdownCodeBlocks(String input) {
-        List<String> codeBlocks = new ArrayList<>();
-        Pattern pattern = Pattern.compile("```java\\s*(.*?)\\s*```", Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(input);
-
-        while (matcher.find()) {
-            codeBlocks.add(matcher.group(1));
-        }
-
-        return codeBlocks;
-    }
-
     protected static void insertImports(String imports, CompilationUnit cu) {
         // Parse the imports as a CompilationUnit
         CompilationUnit importCu = StaticJavaParser.parse(imports);
@@ -111,37 +98,36 @@ public class JavaFileUtils {
         return "package " + packageStatement + ";\n\n" + generatedTest;
     }
 
-    public static void writeTest(String generatedTest, String filePathStr, String classPathName) throws IOException {
+    public static void writeTest(String generatedTest, String filePathStr, String classPathName) {
         File testFile = new File(filePathStr);
 
-        List<String> codeBlocks = extractMarkdownCodeBlocks(generatedTest);
+        try {
+            if (testFile.exists()) {
 
-        if (codeBlocks.isEmpty()) {
-            throw new IllegalArgumentException("No code block found in the provided markdown.");
-        } else if (codeBlocks.size() > 1) {
-            throw new IllegalArgumentException("More than one code blocks found.");
+                // Parse the existing test file as a CompilationUnit
+                CompilationUnit cu = null;
+
+                cu = StaticJavaParser.parse(testFile);
+
+                // Insert imports and method
+                insertImports(generatedTest, cu);
+                insertMethods(generatedTest, cu);
+
+                // Write the modified CompilationUnit back to the file
+                Files.write(testFile.toPath(), cu.toString().getBytes(StandardCharsets.UTF_8));
+            } else {
+                // If test file does not exist, create it and write the new test
+                String contentToWrite = generatedTest;
+
+                contentToWrite = insertPackage(contentToWrite, classPathName);
+
+                byte[] bytes = contentToWrite.getBytes(StandardCharsets.UTF_8);
+                Files.write(testFile.toPath(), bytes, StandardOpenOption.CREATE);
+            }
+        } catch (IOException e) {
+            throw new FailedGeneratedTestException("Failed to write unit test to file.");
         }
 
-        if (testFile.exists()) {
-
-            // Parse the existing test file as a CompilationUnit
-            CompilationUnit cu = StaticJavaParser.parse(testFile);
-
-            // Insert imports and method
-            insertImports(codeBlocks.get(0), cu);
-            insertMethods(codeBlocks.get(0), cu);
-
-            // Write the modified CompilationUnit back to the file
-            Files.write(testFile.toPath(), cu.toString().getBytes(StandardCharsets.UTF_8));
-        } else {
-            // If test file does not exist, create it and write the new test
-            String contentToWrite = codeBlocks.get(0);
-
-            contentToWrite = insertPackage(contentToWrite, classPathName);
-
-            byte[] bytes = contentToWrite.getBytes(StandardCharsets.UTF_8);
-            Files.write(testFile.toPath(), bytes, StandardOpenOption.CREATE);
-        }
     }
 
 }

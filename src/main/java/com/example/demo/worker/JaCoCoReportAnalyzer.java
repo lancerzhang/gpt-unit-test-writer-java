@@ -8,10 +8,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -60,17 +57,6 @@ public class JaCoCoReportAnalyzer {
         }
 
         return lowCoverageMethods;
-    }
-
-    public void runJaCoCo(String projectPath) throws InterruptedException, IOException {
-        String mvnFileName = System.getProperties().getProperty("os.name").toLowerCase().contains("windows") ? "mvn.cmd" : "mvn";
-        Process process = Runtime.getRuntime().exec(mvnFileName + " test");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            System.out.println(line);
-        }
-        process.waitFor();
     }
 
 }

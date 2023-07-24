@@ -3,6 +3,7 @@ package com.example.demo.worker;
 import com.example.demo.config.ApplicationProperties;
 import com.example.demo.config.OpenAIProperties;
 import com.example.demo.exception.BudgetExceededException;
+import com.example.demo.exception.FailedGeneratedTestException;
 import com.example.demo.model.CoverageDetails;
 import com.example.demo.model.MethodCoverage;
 import com.example.demo.model.MethodDetails;
@@ -10,6 +11,7 @@ import com.example.demo.model.Step;
 import com.example.demo.model.openai.OpenAIResult;
 import com.example.demo.service.OpenAIApiService;
 import com.example.demo.utils.ChangeHelper;
+import com.example.demo.utils.CommandUtils;
 import com.example.demo.utils.CoverageUtils;
 import com.example.demo.utils.JavaFileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +56,7 @@ public class CoverageWriter {
 
     public void generateUnitTest() throws Exception {
         System.out.println("start to run mvn test for: " + projectPath);
-        analyzer.runJaCoCo(projectPath);
+        CommandUtils.runJaCoCo(projectPath);
 
         System.out.println("start to analyze jacoco report");
         Map<String, List<MethodCoverage>> lowCoverageMethods = analyzer.analyzeReport(projectPath);
@@ -115,51 +117,41 @@ public class CoverageWriter {
             ChangeHelper changeHelper = new ChangeHelper(testFilePath, hasTestFile);
             changeHelper.backupFile();
 
-            AbstractMap.SimpleEntry<String, String> coverageLines = CoverageUtils.filterAndConvertCoverageLines(details, coverageDetails);
-            String notCoveredLinesString = coverageLines.getKey();
-            String partlyCoveredLinesString = coverageLines.getValue();
+            try {
+                AbstractMap.SimpleEntry<String, String> coverageLines = CoverageUtils.filterAndConvertCoverageLines(details, coverageDetails);
+                String notCoveredLinesString = coverageLines.getKey();
+                String partlyCoveredLinesString = coverageLines.getValue();
 
-            String promptTemplate = loadTemplate(hasTestFile);
+                String promptTemplate = loadTemplate(hasTestFile);
 
-            String prompt = String.format(promptTemplate, this.projectInfo, classPathName, details.getCodeWithLineNumbers(),
-                    notCoveredLinesString, partlyCoveredLinesString);
+                String prompt = String.format(promptTemplate, this.projectInfo, classPathName, details.getCodeWithLineNumbers(),
+                        notCoveredLinesString, partlyCoveredLinesString);
 
-            if (partlyCoveredLinesString.length() > 0) {
-                prompt += "The following lines are partly covered:\n" + partlyCoveredLinesString;
-            }
-            System.out.println(prompt);
+                if (partlyCoveredLinesString.length() > 0) {
+                    prompt += "The following lines are partly covered:\n" + partlyCoveredLinesString;
+                }
+                System.out.println(prompt);
 
-            // Call to OpenAI API with the prompt here, and get the generated test
-            OpenAIResult result = openAIApiService.generateUnitTest(step, prompt, hasTestFile);
+                // Call to OpenAI API with the prompt here, and get the generated test
+                OpenAIResult result = openAIApiService.generateUnitTest(step, prompt, hasTestFile);
 
-            String generatedTest = result.getContent();
+                String generatedTest = result.getContent();
 
-            // Write the test
-            JavaFileUtils.writeTest(generatedTest, testFilePath, classPathName);
+                // Write the test
+                JavaFileUtils.writeTest(generatedTest, testFilePath, classPathName);
 
-            // Run the test
-            boolean testPassed = runTest();
+                // Run the test
+                CommandUtils.runTest(this.projectPath, classPathName);
 
-            double cost = result.getCost();
-            this.budget = this.budget - cost;
-            if (this.budget <= 0) {
-                throw new BudgetExceededException("Budget exceeded. Ending execution.");
-            }
-
-            // If the test did not pass, rollback the changes
-            if (testPassed) {
-                System.out.println("Test passed for generated unit test.");
-                return;
-            } else {
+                double cost = result.getCost();
+                this.budget = this.budget - cost;
+                if (this.budget <= 0) {
+                    throw new BudgetExceededException("Budget exceeded. Ending execution.");
+                }
+            } catch (FailedGeneratedTestException e) {
                 changeHelper.rollbackChanges();
             }
         }
-    }
-
-    protected boolean runTest() {
-        // This is where you would implement logic to run the test.
-        // If the test fails, return false. If the test passes, return true.
-        return true;
     }
 
 
