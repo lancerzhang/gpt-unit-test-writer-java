@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class UtUtils {
+public class CoverageUtils {
 
     public static String convertToRanges(List<Integer> numbers) {
         if (numbers == null || numbers.isEmpty()) {
