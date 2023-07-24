@@ -51,12 +51,13 @@ public class CoverageWriter {
         this.projectPath = projectPath;
         ProjectInfoExtractor projectInfoExtractor = new ProjectInfoExtractor(projectPath + "/pom.xml");
         this.projectInfo = projectInfoExtractor.getProjectInfo();
-        this.extractor = new CoverageDetailExtractor(projectPath);
     }
 
     public void generateUnitTest() throws Exception {
         System.out.println("start to run mvn test for: " + projectPath);
         CommandUtils.runJaCoCo(projectPath);
+
+        this.extractor = new CoverageDetailExtractor(projectPath);
 
         System.out.println("start to analyze jacoco report");
         Map<String, List<MethodCoverage>> lowCoverageMethods = analyzer.analyzeReport(projectPath);
