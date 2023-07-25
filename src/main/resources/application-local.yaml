@@ -3,3 +3,8 @@ openai:
   api_base: dummy
   api_version: 2023-05-15
   projectBudget: 0.0000001
+
+logging:
+  level:
+    root: INFO
+    com.example.demo: DEBUG

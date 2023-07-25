@@ -145,11 +145,11 @@ public class CoverageWriter {
             ArrayList<Message> messages = new ArrayList<>();
             Message systemMessage = new Message();
             systemMessage.setRole("system");
-            systemMessage.setRole("You are a super smart java developer.");
+            systemMessage.setContent("You are a super smart java developer.");
             messages.add(systemMessage);
             Message userMessage = new Message();
             userMessage.setRole("user");
-            userMessage.setRole(prompt);
+            userMessage.setContent(prompt);
             messages.add(userMessage);
 
             // Call to OpenAI API with the prompt here, and get the generated test
