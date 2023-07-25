@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.config.OpenAIProperties;
 import com.example.demo.model.Step;
 import com.example.demo.model.openai.Data;
+import com.example.demo.model.openai.Message;
 import com.example.demo.model.openai.OpenAIApiResponse;
 import com.example.demo.model.openai.OpenAIResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,7 +32,7 @@ public class OpenAIApiService {
         this.openAIProperties = openAIProperties;
     }
 
-    public OpenAIResult generateUnitTest(Step step, String prompt, boolean hasTestFile) throws IOException {
+    public OpenAIResult generateUnitTest(Step step, ArrayList<Message> messages, boolean hasTestFile) throws IOException {
         OpenAIApiResponse response;
         OpenAIResult result;
 
@@ -51,19 +53,20 @@ public class OpenAIApiService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("api-key", openAIProperties.getApiKey());
             Map<String, Object> body = new HashMap<>();
-            body.put("prompt", prompt);
+            body.put("messages", messages);
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
             response = restTemplate.postForObject(url, entity, OpenAIApiResponse.class);
         }
 
-        result = processResponse(step, response);
+        Data data = response.getData();
+        messages.add(data.getChoices().get(0).getMessage());
+        result = processResponse(step, data);
 
         return result;
     }
 
-    protected OpenAIResult processResponse(Step step, OpenAIApiResponse response) {
-        Data data = response.getData();
+    protected OpenAIResult processResponse(Step step, Data data) {
         String content = data.getChoices().get(0).getMessage().getContent();
 
         // Calculate cost

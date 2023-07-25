@@ -13,4 +13,5 @@ public class Step {
     private String model;
     @JsonProperty("context-length")
     private String contextLength;
+    private String feedback;
 }

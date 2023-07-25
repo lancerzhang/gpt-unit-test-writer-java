@@ -8,6 +8,7 @@ import com.example.demo.model.CoverageDetails;
 import com.example.demo.model.MethodCoverage;
 import com.example.demo.model.MethodDetails;
 import com.example.demo.model.Step;
+import com.example.demo.model.openai.Message;
 import com.example.demo.model.openai.OpenAIResult;
 import com.example.demo.service.OpenAIApiService;
 import com.example.demo.utils.ChangeHelper;
@@ -22,12 +23,13 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class CoverageWriter {
@@ -45,6 +47,8 @@ public class CoverageWriter {
     private Resource coverageExistsResource;
     @Value("classpath:prompts/coverage_new.txt")
     private Resource coverageNewResource;
+    @Value("classpath:prompts/error_feedback.txt")
+    private Resource errorFeedbackResource;
     private String projectPath;
     private String projectInfo;
     private CoverageDetailExtractor extractor;
@@ -106,6 +110,11 @@ public class CoverageWriter {
         if (details == null) {
             return;
         }
+
+        AbstractMap.SimpleEntry<String, String> coverageLines = CoverageUtils.filterAndConvertCoverageLines(details, coverageDetails);
+        String notCoveredLinesString = coverageLines.getKey();
+        String partlyCoveredLinesString = coverageLines.getValue();
+
         for (Step step : applicationProperties.getSteps().get("coverage")) {
             if (this.budget <= 0) {
                 throw new BudgetExceededException("Budget exceeded. Ending execution.");
@@ -124,10 +133,6 @@ public class CoverageWriter {
             ChangeHelper changeHelper = new ChangeHelper(testFilePath, hasTestFile);
             changeHelper.backupFile();
 
-            AbstractMap.SimpleEntry<String, String> coverageLines = CoverageUtils.filterAndConvertCoverageLines(details, coverageDetails);
-            String notCoveredLinesString = coverageLines.getKey();
-            String partlyCoveredLinesString = coverageLines.getValue();
-
             String promptTemplate = loadTemplate(hasTestFile);
 
             String prompt = String.format(promptTemplate, this.projectInfo, classPathName, details.getCodeWithLineNumbers(),
@@ -136,10 +141,19 @@ public class CoverageWriter {
             if (partlyCoveredLinesString.length() > 0) {
                 prompt += "The following lines are partly covered:\n" + partlyCoveredLinesString;
             }
-            logger.info(prompt);
+
+            ArrayList<Message> messages = new ArrayList<>();
+            Message systemMessage = new Message();
+            systemMessage.setRole("system");
+            systemMessage.setRole("You are a super smart java developer.");
+            messages.add(systemMessage);
+            Message userMessage = new Message();
+            userMessage.setRole("user");
+            userMessage.setRole(prompt);
+            messages.add(userMessage);
 
             // Call to OpenAI API with the prompt here, and get the generated test
-            OpenAIResult result = openAIApiService.generateUnitTest(step, prompt, hasTestFile);
+            OpenAIResult result = openAIApiService.generateUnitTest(step, messages, hasTestFile);
             double cost = result.getCost();
             this.budget = this.budget - cost;
 
@@ -160,6 +174,34 @@ public class CoverageWriter {
 
             } catch (FailedGeneratedTestException e) {
                 changeHelper.rollbackChanges();
+                if (step.getFeedback().equals("true")) {
+                    // Backup the original file
+                    ChangeHelper changeHelper2 = new ChangeHelper(testFilePath, hasTestFile);
+                    changeHelper2.backupFile();
+
+                    // Load error_feedback.txt as a prompt
+                    String errorFeedback;
+                    try (InputStream is = errorFeedbackResource.getInputStream()) {
+                        errorFeedback = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))
+                                .lines()
+                                .collect(Collectors.joining("\n"));
+                    }
+
+                    // Add error feedback to messages as a user message
+                    Message feedbackMessage = new Message();
+                    feedbackMessage.setRole("user");
+                    feedbackMessage.setContent(errorFeedback);
+                    messages.add(feedbackMessage);
+
+                    // Call to OpenAI API with the updated prompt here, and get the regenerated test
+                    OpenAIResult regeneratedResult = openAIApiService.generateUnitTest(step, messages, hasTestFile);
+
+                    // Write the test
+                    JavaFileUtils.writeTest(regeneratedResult.getContent(), testFilePath, classPathName);
+
+                    // Run the test again
+                    CommandUtils.runTest(this.projectPath, classPathName);
+                }
             }
         }
     }
