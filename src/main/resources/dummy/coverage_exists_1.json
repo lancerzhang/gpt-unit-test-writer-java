@@ -1,27 +1,21 @@
 {
-  "msg": "success to trigger the API",
-  "code": "00000",
-  "data": {
-    "id": "chatcmpl-7FMw5nBSebsOcz0DflieR4kGC62Rj",
-    "object": "chat.completion",
-    "created": 1.683897441E9,
-    "model": "gpt-35-turbo",
-    "choices": [
-      {
-        "index": 0.0,
-        "finish_reason": "stop",
-        "message": {
-          "role": "assistant",
-          "content": "Here are the unit tests for the `com/example/surveyserver/model/SurveyReply` class to improve code coverage:\n\n```java\nimport static org.junit.jupiter.api.Assertions.assertEquals;\nimport static org.mockito.Mockito.*;\n\nimport java.util.Date;\n\nimport org.junit.jupiter.api.Test;\n\npublic class SurveyReplyTest {\n\n    @Test\n    public void testPrePersist_randomChars() {\n        // Given\n        SurveyReply surveyReply = new SurveyReply();\n\n        // When\n        surveyReply.prePersist();\n\n        // Then\n        Date createdAt = surveyReply.getCreatedAt();\n        Date lastModified = surveyReply.getLastModified();\n\n        // Add assertions as per your requirement\n        // Example:\n        assertEquals(createdAt, lastModified);\n    }\n}\n```\n\nEnsure that you've imported the necessary classes and adjust the assertions according to your class implementation and requirements. This test will help cover lines 51-53 of the `prePersist()` method."
-        }
+  "id": "chatcmpl-7FMw5nBSebsOcz0DflieR4kGC62Rj",
+  "object": "chat.completion",
+  "created": 1.683897441E9,
+  "model": "gpt-35-turbo",
+  "choices": [
+    {
+      "index": 0.0,
+      "finish_reason": "stop",
+      "message": {
+        "role": "assistant",
+        "content": "Here are the unit tests for the `com/example/surveyserver/model/SurveyReply` class to improve code coverage:\n\n```java\nimport static org.junit.jupiter.api.Assertions.assertEquals;\nimport static org.mockito.Mockito.*;\n\nimport java.util.Date;\n\nimport org.junit.jupiter.api.Test;\n\npublic class SurveyReplyTest {\n\n    @Test\n    public void testPrePersist_randomChars() {\n        // Given\n        SurveyReply surveyReply = new SurveyReply();\n\n        // When\n        surveyReply.prePersist();\n\n        // Then\n        Date createdAt = surveyReply.getCreatedAt();\n        Date lastModified = surveyReply.getLastModified();\n\n        // Add assertions as per your requirement\n        // Example:\n        assertEquals(createdAt, lastModified);\n    }\n}\n```\n\nEnsure that you've imported the necessary classes and adjust the assertions according to your class implementation and requirements. This test will help cover lines 51-53 of the `prePersist()` method."
       }
-    ],
-    "usage": {
-      "completion_tokens": 183.0,
-      "prompt_tokens": 25.0,
-      "total_tokens": 208.0
     }
-  },
-  "timestamp": 1683897447785,
-  "requestId": "72ae5d90-d0c1-4342-9394-b1ea5beda43f"
+  ],
+  "usage": {
+    "completion_tokens": 183.0,
+    "prompt_tokens": 25.0,
+    "total_tokens": 208.0
+  }
 }

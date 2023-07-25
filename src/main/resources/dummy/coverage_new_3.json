@@ -1,27 +1,21 @@
 {
-  "msg": "success to trigger the API",
-  "code": "00000",
-  "data": {
-    "id": "chatcmpl-7FMw5nBSebsOcz0DflieR4kGC62Rj",
-    "object": "chat.completion",
-    "created": 1.683897441E9,
-    "model": "gpt-35-turbo",
-    "choices": [
-      {
-        "index": 0.0,
-        "finish_reason": "stop",
-        "message": {
-          "role": "assistant",
-          "content": "Here are the JUnit 5 test cases for the `prePersist()` method in the `SurveyReply` class:\n\n```java\nimport org.junit.jupiter.api.Test;\nimport org.junit.jupiter.api.extension.ExtendWith;\nimport org.springframework.boot.test.context.SpringBootTest;\nimport org.springframework.test.context.junit.jupiter.SpringExtension;\n\nimport java.util.Date;\n\n@ExtendWith(SpringExtension.class)\n@SpringBootTest\npublic class SurveyReplyTest {\n\n    @Test\n    public void prePersist_ShouldSetCreatedAtAndLastModifiedToCurrentDate() {\n        // Arrange\n        SurveyReply surveyReply = new SurveyReply();\n\n        // Act\n        surveyReply.prePersist();\n\n        // Assert\n        Date currentDate = new Date();\n        assertDateEquals(currentDate, surveyReply.getCreatedAt());\n        assertDateEquals(currentDate, surveyReply.getLastModified());\n    }\n\n    private void assertDateEquals(Date expected, Date actual) {\n        long expectedTime = expected.getTime();\n        long actualTime = actual.getTime();\n        // Allow a difference of up to 1000 milliseconds (1 second) for better test reliability\n        long allowedDifference = 1000;\n        assert Math.abs(expectedTime - actualTime) <= allowedDifference : \"Dates are not equal\";\n    }\n}\n```\n\nEnsure that you have the necessary dependencies and configurations set up to run JUnit 5 tests in your Spring Boot project. This test case will check if the `prePersist()` method correctly sets the `createdAt` and `lastModified` fields to the current date when called."
-        }
+  "id": "chatcmpl-7FMw5nBSebsOcz0DflieR4kGC62Rj",
+  "object": "chat.completion",
+  "created": 1.683897441E9,
+  "model": "gpt-35-turbo",
+  "choices": [
+    {
+      "index": 0.0,
+      "finish_reason": "stop",
+      "message": {
+        "role": "assistant",
+        "content": "Here are the JUnit 5 test cases for the `prePersist()` method in the `SurveyReply` class:\n\n```java\nimport org.junit.jupiter.api.Test;\nimport org.junit.jupiter.api.extension.ExtendWith;\nimport org.springframework.boot.test.context.SpringBootTest;\nimport org.springframework.test.context.junit.jupiter.SpringExtension;\n\nimport java.util.Date;\n\n@ExtendWith(SpringExtension.class)\n@SpringBootTest\npublic class SurveyReplyTest {\n\n    @Test\n    public void prePersist_ShouldSetCreatedAtAndLastModifiedToCurrentDate() {\n        // Arrange\n        SurveyReply surveyReply = new SurveyReply();\n\n        // Act\n        surveyReply.prePersist();\n\n        // Assert\n        Date currentDate = new Date();\n        assertDateEquals(currentDate, surveyReply.getCreatedAt());\n        assertDateEquals(currentDate, surveyReply.getLastModified());\n    }\n\n    private void assertDateEquals(Date expected, Date actual) {\n        long expectedTime = expected.getTime();\n        long actualTime = actual.getTime();\n        // Allow a difference of up to 1000 milliseconds (1 second) for better test reliability\n        long allowedDifference = 1000;\n        assert Math.abs(expectedTime - actualTime) <= allowedDifference : \"Dates are not equal\";\n    }\n}\n```\n\nEnsure that you have the necessary dependencies and configurations set up to run JUnit 5 tests in your Spring Boot project. This test case will check if the `prePersist()` method correctly sets the `createdAt` and `lastModified` fields to the current date when called."
       }
-    ],
-    "usage": {
-      "completion_tokens": 183.0,
-      "prompt_tokens": 25.0,
-      "total_tokens": 208.0
     }
-  },
-  "timestamp": 1683897447785,
-  "requestId": "72ae5d90-d0c1-4342-9394-b1ea5beda43f"
+  ],
+  "usage": {
+    "completion_tokens": 183.0,
+    "prompt_tokens": 25.0,
+    "total_tokens": 208.0
+  }
 }

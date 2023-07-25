@@ -1,5 +1,10 @@
 openai:
-  api_key: YOUR_API_KEY
-  api_base: https://YOUR_RESOURCE_NAME.openai.azure.com
+  api_key: ${AZURE_OPENAI_KEY}
+  api_base: ${AZURE_OPENAI_ENDPOINT}
   api_version: 2023-05-15
   projectBudget: 1.0
+
+logging:
+  level:
+    root: INFO
+    com.example.demo: DEBUG

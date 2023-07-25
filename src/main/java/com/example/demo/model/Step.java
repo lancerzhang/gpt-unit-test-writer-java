@@ -9,6 +9,7 @@ import lombok.Setter;
 @Setter
 @Data
 public class Step {
+    private String deployment;
     private String name;
     private String model;
     @JsonProperty("context-length")

@@ -21,22 +21,20 @@ openai:
 
 steps:
   coverage:
-    - model: gpt-35-turbo
+    - deployment: gpt35turbo
+      model: gpt-35-turbo
       context-length: context-4k
       feedback: true
-    - model: gpt-35-turbo
+    - deployment: gpt35turbo
+      model: gpt-35-turbo
       context-length: context-4k
-      feedback: true
-    - model: gpt-4
-      context-length: context-8k
       feedback: true
   mutation:
-    - model: gpt-35-turbo
+    - deployment: gpt35turbo
+      model: gpt-35-turbo
       context-length: context-4k
       feedback: true
-    - model: gpt-35-turbo
+    - deployment: gpt35turbo
+      model: gpt-35-turbo
       context-length: context-4k
-      feedback: true
-    - model: gpt-4
-      context-length: context-8k
       feedback: true
