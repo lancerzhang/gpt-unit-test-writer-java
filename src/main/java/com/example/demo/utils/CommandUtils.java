@@ -13,7 +13,7 @@ public class CommandUtils {
     private static final Logger logger = LoggerFactory.getLogger(CommandUtils.class);
     private static final String mvnFileName = System.getProperties().getProperty("os.name").toLowerCase().contains("windows") ? "mvn.cmd" : "mvn";
 
-    public static void runJaCoCo(String projectPath) throws InterruptedException, IOException {
+    public static void runMvnTest(String projectPath) throws InterruptedException, IOException {
         String command = mvnFileName + " test";
         logger.info("Start to run command: " + command);
         Process process = Runtime.getRuntime().exec(command, null, new File(projectPath));

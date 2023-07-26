@@ -62,7 +62,7 @@ public class CoverageWriter {
 
     public void generateUnitTest() throws Exception {
         logger.info("start to run mvn test for: " + projectPath);
-        CommandUtils.runJaCoCo(projectPath);
+        CommandUtils.runMvnTest(projectPath);
 
         this.extractor = new CoverageDetailExtractor(projectPath);
 

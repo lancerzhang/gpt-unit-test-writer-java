@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.config.OpenAIProperties;
 import com.example.demo.model.Step;
 import com.example.demo.model.openai.Message;
+import com.example.demo.model.openai.OpenAIApiRequest;
 import com.example.demo.model.openai.OpenAIApiResponse;
 import com.example.demo.model.openai.OpenAIResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,7 +20,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -55,14 +55,13 @@ public class OpenAIApiService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("api-key", openAIProperties.getApiKey());
-            Map<String, Object> body = new HashMap<>();
-            body.put("messages", messages);
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+            OpenAIApiRequest openAIApiRequest = new OpenAIApiRequest();
+            HttpEntity<OpenAIApiRequest> entity = new HttpEntity<>(openAIApiRequest, headers);
 
             ObjectMapper objectMapper = new ObjectMapper();
             logger.info("Sending POST request to: " + url);
             logger.debug("Headers: " + headers);
-            logger.debug("Request body: " + objectMapper.writeValueAsString(body));
+            logger.debug("Request body: " + objectMapper.writeValueAsString(openAIApiRequest));
             response = restTemplate.postForObject(url, entity, OpenAIApiResponse.class);
             logger.debug("Received response: " + objectMapper.writeValueAsString(response));
 
