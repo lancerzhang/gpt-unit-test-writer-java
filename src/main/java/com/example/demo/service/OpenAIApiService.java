@@ -50,7 +50,7 @@ public class OpenAIApiService {
             response = objectMapper.readValue(resource.getInputStream(), OpenAIApiResponse.class);
         } else {
             String url = openAIProperties.getApiBase() + "openai/deployments/" + step.getDeployment()
-                    + "/completions?api-version=" + openAIProperties.getApiVersion();
+                    + "/chat/completions?api-version=" + openAIProperties.getApiVersion();
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
