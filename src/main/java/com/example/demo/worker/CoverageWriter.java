@@ -62,7 +62,7 @@ public class CoverageWriter {
 
     public void generateUnitTest() throws Exception {
         logger.info("start to run mvn test for: " + projectPath);
-        CommandUtils.runMvnTest(projectPath);
+//        CommandUtils.runMvnTest(projectPath);
 
         this.extractor = new CoverageDetailExtractor(projectPath);
 
@@ -205,7 +205,6 @@ public class CoverageWriter {
             }
         }
     }
-
 
     protected String loadTemplate(boolean hasTestFile) throws IOException {
         Resource resourceToUse = hasTestFile ? coverageExistsResource : coverageNewResource;

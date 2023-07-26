@@ -56,6 +56,7 @@ public class OpenAIApiService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("api-key", openAIProperties.getApiKey());
             OpenAIApiRequest openAIApiRequest = new OpenAIApiRequest();
+            openAIApiRequest.setMessages(messages);
             HttpEntity<OpenAIApiRequest> entity = new HttpEntity<>(openAIApiRequest, headers);
 
             ObjectMapper objectMapper = new ObjectMapper();
