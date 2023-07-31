@@ -3,7 +3,6 @@ package com.example.demo.worker;
 import com.example.demo.config.ApplicationProperties;
 import com.example.demo.config.OpenAIProperties;
 import com.example.demo.exception.BudgetExceededException;
-import com.example.demo.exception.FailedGeneratedTestException;
 import com.example.demo.model.CoverageDetails;
 import com.example.demo.model.MethodCoverage;
 import com.example.demo.model.MethodDetails;
@@ -23,19 +22,20 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class CoverageWriter {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final JaCoCoReportAnalyzer analyzer = new JaCoCoReportAnalyzer();
+    private CoverageDetailExtractor extractor;
 
     @Autowired
     private ApplicationProperties applicationProperties;
@@ -51,8 +51,10 @@ public class CoverageWriter {
     private Resource errorFeedbackResource;
     private String projectPath;
     private String projectInfo;
-    private CoverageDetailExtractor extractor;
     private double budget;
+    private ArrayList<Message> messages;
+    private String testFilePath;
+    private boolean hasTestFile;
 
     public void setProjectPath(String projectPath) throws Exception {
         this.projectPath = projectPath;
@@ -106,7 +108,7 @@ public class CoverageWriter {
         }
     }
 
-    protected void handleMethod(String classPathName, MethodDetails details, CoverageDetails coverageDetails) throws IOException {
+    protected void handleMethod(String classPathName, MethodDetails details, CoverageDetails coverageDetails) throws IOException, InterruptedException {
         if (details == null) {
             return;
         }
@@ -116,101 +118,103 @@ public class CoverageWriter {
         String partlyCoveredLinesString = coverageLines.getValue();
 
         for (Step step : applicationProperties.getSteps().get("coverage")) {
-            if (this.budget <= 0) {
-                throw new BudgetExceededException("Budget exceeded. Ending execution.");
-            }
+            createInitialMessages();
 
             // Define the path of the test file
-            String testFilePath = projectPath + "/src/test/java/" + classPathName + "Test.java";
+            testFilePath = projectPath + "/src/test/java/" + classPathName + "Test.java";
+            hasTestFile = new File(testFilePath).exists();
 
-            boolean hasTestFile = false;
-            File originalFile = new File(testFilePath);
-            if (originalFile.exists()) {
-                hasTestFile = true;
-            }
+            String prompt = preparePrompt(classPathName, details, notCoveredLinesString, partlyCoveredLinesString);
+            String errMsg = handleCoverageStep(classPathName, step, prompt);
 
-            // Backup the original file
-            ChangeHelper changeHelper = new ChangeHelper(testFilePath, hasTestFile);
-            changeHelper.backupFile();
-
-            String promptTemplate = loadTemplate(hasTestFile);
-
-            String prompt = String.format(promptTemplate, this.projectInfo, classPathName, details.getCodeWithLineNumbers(),
-                    notCoveredLinesString, partlyCoveredLinesString);
-
-            if (partlyCoveredLinesString.length() > 0) {
-                prompt += "The following lines are partly covered:\n" + partlyCoveredLinesString;
-            }
-
-            ArrayList<Message> messages = new ArrayList<>();
-            Message systemMessage = new Message();
-            systemMessage.setRole("system");
-            systemMessage.setContent("You are a super smart java developer.");
-            messages.add(systemMessage);
-            Message userMessage = new Message();
-            userMessage.setRole("user");
-            userMessage.setContent(prompt);
-            messages.add(userMessage);
-
-            // Call to OpenAI API with the prompt here, and get the generated test
-            OpenAIResult result = openAIApiService.generateUnitTest(step, messages, hasTestFile);
-            double cost = result.getCost();
-            this.budget = this.budget - cost;
-
-            try {
-                List<String> codeBlocks = JavaFileUtils.extractMarkdownCodeBlocks(result.getContent());
-
-                if (codeBlocks.size() != 1) {
-                    throw new FailedGeneratedTestException("Expect one code block in openAI response but it's not.");
-                }
-
-                String generatedTest = result.getContent();
-
-                // Write the test
-                JavaFileUtils.writeTest(generatedTest, testFilePath, classPathName);
-
-                // Run the test
-                CommandUtils.runTest(this.projectPath, classPathName);
-
-            } catch (FailedGeneratedTestException e) {
-                changeHelper.rollbackChanges();
-                if (step.getFeedback().equals("true")) {
-                    // Backup the original file
-                    ChangeHelper changeHelper2 = new ChangeHelper(testFilePath, hasTestFile);
-                    changeHelper2.backupFile();
-
-                    // Load error_feedback.txt as a prompt
-                    String errorFeedback;
-                    try (InputStream is = errorFeedbackResource.getInputStream()) {
-                        errorFeedback = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))
-                                .lines()
-                                .collect(Collectors.joining("\n"));
-                    }
-
-                    // Add error feedback to messages as a user message
-                    Message feedbackMessage = new Message();
-                    feedbackMessage.setRole("user");
-                    feedbackMessage.setContent(errorFeedback);
-                    messages.add(feedbackMessage);
-
-                    // Call to OpenAI API with the updated prompt here, and get the regenerated test
-                    OpenAIResult regeneratedResult = openAIApiService.generateUnitTest(step, messages, hasTestFile);
-
-                    // Write the test
-                    JavaFileUtils.writeTest(regeneratedResult.getContent(), testFilePath, classPathName);
-
-                    // Run the test again
-                    CommandUtils.runTest(this.projectPath, classPathName);
-                }
+            if (errMsg != null && step.getFeedback().equals("true")) {
+                // Load error_feedback.txt as a prompt
+                String feedbackPromptTemplate = loadTemplate("feedback");
+                String feedbackPrompt = String.format(feedbackPromptTemplate, errMsg);
+                handleCoverageStep(classPathName, step, feedbackPrompt);
             }
         }
     }
 
-    protected String loadTemplate(boolean hasTestFile) throws IOException {
-        Resource resourceToUse = hasTestFile ? coverageExistsResource : coverageNewResource;
+    protected String handleCoverageStep(String classPathName, Step step, String prompt) throws IOException, InterruptedException {
+        if (this.budget <= 0) {
+            throw new BudgetExceededException("Budget exceeded. Ending execution.");
+        }
+        String errMsg = null;
+
+        // Backup the original file
+        ChangeHelper changeHelper = new ChangeHelper(testFilePath, hasTestFile);
+        changeHelper.backupFile();
+
+        addUserMessages(prompt);
+        // Call to OpenAI API with the prompt here, and get the generated test
+        OpenAIResult result = openAIApiService.generateUnitTest(step, messages, hasTestFile);
+        this.budget = this.budget - result.getCost();
+        List<String> codeBlocks = JavaFileUtils.extractMarkdownCodeBlocks(result.getContent());
+
+        if (codeBlocks.size() != 1) {
+            errMsg = "Expect one code block in openAI response but it's not.";
+            logger.info(errMsg);
+        } else {
+            // Write the test
+            JavaFileUtils.writeTest(codeBlocks.get(0), testFilePath, classPathName);
+            // Run the test
+            errMsg = CommandUtils.runTest(this.projectPath, classPathName);
+        }
+        if (errMsg != null) {
+            changeHelper.rollbackChanges();
+        }
+        return errMsg;
+    }
+
+    protected String preparePrompt(String classPathName, MethodDetails details, String notCoveredLinesString, String partlyCoveredLinesString) throws IOException {
+        String promptTemplate = loadTemplate(hasTestFile ? "exists" : "new");
+
+        String prompt = String.format(promptTemplate, this.projectInfo, classPathName, details.getCodeWithLineNumbers(),
+                notCoveredLinesString, partlyCoveredLinesString);
+
+        if (partlyCoveredLinesString.length() > 0) {
+            prompt += "The following lines are partly covered:\n" + partlyCoveredLinesString;
+        }
+
+        return prompt;
+    }
+
+    protected void createInitialMessages() {
+        ArrayList<Message> messages = new ArrayList<>();
+        Message systemMessage = new Message();
+        systemMessage.setRole("system");
+        systemMessage.setContent("You are a super smart java developer.");
+        messages.add(systemMessage);
+        this.messages = messages;
+    }
+
+    protected void addUserMessages(String prompt) {
+        Message userMessage = new Message();
+        userMessage.setRole("user");
+        userMessage.setContent(prompt);
+        this.messages.add(userMessage);
+    }
+
+    protected String loadTemplate(String templateType) throws IOException {
+        Resource resourceToUse;
+        switch (templateType) {
+            case "exists":
+                resourceToUse = coverageExistsResource;
+                break;
+            case "new":
+                resourceToUse = coverageNewResource;
+                break;
+            case "feedback":
+                resourceToUse = errorFeedbackResource;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid template type: " + templateType);
+        }
 
         byte[] bytes = FileCopyUtils.copyToByteArray(resourceToUse.getInputStream());
         return new String(bytes, StandardCharsets.UTF_8);
     }
+
 }
 
