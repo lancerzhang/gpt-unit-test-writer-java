@@ -150,6 +150,7 @@ public class CoverageWriter {
         // Call to OpenAI API with the prompt here, and get the generated test
         OpenAIResult result = openAIApiService.generateUnitTest(step, messages, hasTestFile);
         this.budget = this.budget - result.getCost();
+        logger.info("Remain budget is " + this.budget);
         List<String> codeBlocks = JavaFileUtils.extractMarkdownCodeBlocks(result.getContent());
 
         if (codeBlocks.size() != 1) {

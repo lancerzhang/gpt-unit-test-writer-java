@@ -134,11 +134,11 @@ public class JavaFileUtils {
 
     public static List<String> extractMarkdownCodeBlocks(String input) {
         List<String> codeBlocks = new ArrayList<>();
-        Pattern pattern = Pattern.compile("```java\\s*(.*?)\\s*```", Pattern.DOTALL);
+        Pattern pattern = Pattern.compile("```(java)?\\s*(.*?)\\s*```", Pattern.DOTALL);
         Matcher matcher = pattern.matcher(input);
 
         while (matcher.find()) {
-            codeBlocks.add(matcher.group(1));
+            codeBlocks.add(matcher.group(2));
         }
 
         return codeBlocks;
