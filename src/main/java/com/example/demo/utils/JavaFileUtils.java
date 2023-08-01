@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
@@ -124,6 +125,10 @@ public class JavaFileUtils {
                 contentToWrite = insertPackage(contentToWrite, classPathName);
 
                 byte[] bytes = contentToWrite.getBytes(StandardCharsets.UTF_8);
+                // Ensure directories exist
+                Path filePath = Paths.get(filePathStr);
+                Files.createDirectories(filePath.getParent());
+
                 Files.write(testFile.toPath(), bytes, StandardOpenOption.CREATE);
             }
         } catch (IOException e) {
