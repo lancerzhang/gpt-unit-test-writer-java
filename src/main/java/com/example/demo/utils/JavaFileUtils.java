@@ -133,7 +133,7 @@ public class JavaFileUtils {
     }
 
     public static String extractMarkdownCodeBlocks(String input) {
-        String patternStr = "```(.*?)```";
+        String patternStr = "```(?:.*?\\n)?(.*?)```";
         Pattern pattern = Pattern.compile(patternStr, Pattern.DOTALL);
         Matcher matcher = pattern.matcher(input);
         StringBuilder stringBuilder = new StringBuilder();
