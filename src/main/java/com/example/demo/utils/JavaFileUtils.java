@@ -132,16 +132,25 @@ public class JavaFileUtils {
 
     }
 
-    public static List<String> extractMarkdownCodeBlocks(String input) {
-        List<String> codeBlocks = new ArrayList<>();
-        Pattern pattern = Pattern.compile("```(java)?\\s*(.*?)\\s*```", Pattern.DOTALL);
+    public static String extractMarkdownCodeBlocks(String input) {
+        String patternStr = "```(.*?)```";
+        Pattern pattern = Pattern.compile(patternStr, Pattern.DOTALL);
         Matcher matcher = pattern.matcher(input);
+        StringBuilder stringBuilder = new StringBuilder();
+        int matches = 0;
 
         while (matcher.find()) {
-            codeBlocks.add(matcher.group(2));
+            matches++;
+            stringBuilder.append(matcher.group(1).trim()).append("\n");
         }
 
-        return codeBlocks;
+        if (matches > 1) {
+            return null;
+        } else if (matches == 1) {
+            return stringBuilder.toString().trim();
+        } else {
+            return input;
+        }
     }
 
 }

@@ -151,14 +151,14 @@ public class CoverageWriter {
         OpenAIResult result = openAIApiService.generateUnitTest(step, messages, hasTestFile);
         this.budget = this.budget - result.getCost();
         logger.info("Remain budget is " + this.budget);
-        List<String> codeBlocks = JavaFileUtils.extractMarkdownCodeBlocks(result.getContent());
+        String codeBlock = JavaFileUtils.extractMarkdownCodeBlocks(result.getContent());
 
-        if (codeBlocks.size() != 1) {
+        if (codeBlock == null) {
             errMsg = "Expect one code block in openAI response but it's not.";
             logger.info(errMsg);
         } else {
             // Write the test
-            JavaFileUtils.writeTest(codeBlocks.get(0), testFilePath, classPathName);
+            JavaFileUtils.writeTest(codeBlock, testFilePath, classPathName);
             // Run the test
             errMsg = CommandUtils.runTest(this.projectPath, classPathName);
         }

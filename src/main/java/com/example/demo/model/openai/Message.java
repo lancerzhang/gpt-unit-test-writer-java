@@ -1,6 +1,5 @@
 package com.example.demo.model.openai;
 
-import com.github.javaparser.utils.StringEscapeUtils;
 import lombok.Getter;
 import lombok.Setter;
 
