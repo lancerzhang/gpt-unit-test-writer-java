@@ -80,16 +80,33 @@ public class JavaFileUtils {
         CompilationUnit fieldCu = StaticJavaParser.parse(fields);
 
         // Get all the field declarations from the fieldCu
-        List<FieldDeclaration> fieldDeclarations = fieldCu.findAll(FieldDeclaration.class);
+        List<FieldDeclaration> newFieldDeclarations = fieldCu.findAll(FieldDeclaration.class);
 
-        // Add the fields to the first class in the existing CompilationUnit
+        // Get existing field declarations
         TypeDeclaration<?> firstClass = cu.findFirst(TypeDeclaration.class).orElse(null);
         if (firstClass != null) {
+            List<FieldDeclaration> existingFieldDeclarations = firstClass.getFields();
+
             int insertIndex = 0;  // insert at the beginning
-            for (FieldDeclaration fd : fieldDeclarations) {
-                firstClass.getMembers().add(insertIndex++, fd);
+            for (FieldDeclaration newField : newFieldDeclarations) {
+                // Skip if the field already exists
+                if (fieldExists(newField, existingFieldDeclarations)) {
+                    continue;
+                }
+
+                firstClass.getMembers().add(insertIndex++, newField);
             }
         }
+    }
+
+    private static boolean fieldExists(FieldDeclaration newField, List<FieldDeclaration> existingFieldDeclarations) {
+        String newFieldName = newField.getVariable(0).getNameAsString();
+        for (FieldDeclaration existingField : existingFieldDeclarations) {
+            if (existingField.getVariable(0).getNameAsString().equals(newFieldName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected static void insertMethods(String methods, CompilationUnit cu) {
