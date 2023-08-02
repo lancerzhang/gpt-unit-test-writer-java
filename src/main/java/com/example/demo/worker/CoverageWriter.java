@@ -165,7 +165,9 @@ public class CoverageWriter {
             // Run the test
             errMsg = CommandUtils.runTest(this.projectPath, classPathName);
         }
-        if (errMsg != null) {
+        if (errMsg == null) {
+            changeHelper.complete();
+        } else {
             changeHelper.rollbackChanges();
         }
         return errMsg;

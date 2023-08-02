@@ -16,6 +16,14 @@ public class ChangeHelper {
         this.hasTestFile = hasTestFile;
     }
 
+    public void complete() throws IOException {
+        File backupFile = new File(backupFilePath);
+        // Check if backup file exists, and delete if it does
+        if (backupFile.exists()) {
+            backupFile.delete();
+        }
+    }
+
     public void backupFile() throws IOException {
         if (hasTestFile) {
             File originalFile = new File(originalFilePath);
@@ -33,14 +41,14 @@ public class ChangeHelper {
     }
 
     public void rollbackChanges() throws IOException {
-        File originalFile = new File(this.originalFilePath);
+        File originalFile = new File(originalFilePath);
         if (hasTestFile) {
-            File backupFile = new File(this.backupFilePath);
+            File backupFile = new File(backupFilePath);
             Files.copy(backupFile.toPath(), originalFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } else {
             if (originalFile.exists()) {
                 if (!originalFile.delete()) {
-                    throw new IOException("Failed to delete original file: " + this.originalFilePath);
+                    throw new IOException("Failed to delete original file: " + originalFilePath);
                 }
             }
         }
