@@ -19,7 +19,7 @@ public class JaCoCoReportAnalyzer {
     public Map<String, List<MethodCoverage>> analyzeReport(String projectPath) throws Exception {
         Map<String, List<MethodCoverage>> lowCoverageMethods = new HashMap<>();
 
-        File jacocoReport = new File(projectPath + File.separator + "target" + File.separator + "site" + File.separator + "jacoco" + File.separator + "jacoco.xml");
+        File jacocoReport = new File(projectPath + "/target/site/jacoco/jacoco.xml");
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);

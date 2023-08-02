@@ -58,7 +58,7 @@ public class CoverageWriter {
 
     public void setProjectPath(String projectPath) throws Exception {
         this.projectPath = projectPath;
-        ProjectInfoExtractor projectInfoExtractor = new ProjectInfoExtractor(projectPath + File.separator + "pom.xml");
+        ProjectInfoExtractor projectInfoExtractor = new ProjectInfoExtractor(projectPath + "/pom.xml");
         this.projectInfo = projectInfoExtractor.getProjectInfo();
     }
 
@@ -89,7 +89,7 @@ public class CoverageWriter {
             return;
         }
 
-        String javaFilePath = new File(projectPath + File.separator + "src" + File.separator + "main" + File.separator + "java" + File.separator + classPathName + ".java").getPath();
+        String javaFilePath = new File(projectPath, "/src/main/java/" + classPathName + ".java").getPath();
         String[] classPathSegments = classPathName.split("/");
         String className = classPathSegments[classPathSegments.length - 1];
 
@@ -120,7 +120,8 @@ public class CoverageWriter {
         for (Step step : applicationProperties.getSteps().get("coverage")) {
             createInitialMessages();
 
-            testFilePath = projectPath + File.separator + "src" + File.separator + "test" + File.separator + "java" + File.separator + classPathName + "Test.java";
+            // Define the path of the test file
+            testFilePath = projectPath + "/src/test/java/" + classPathName + "Test.java";
             hasTestFile = new File(testFilePath).exists();
 
             String prompt = preparePrompt(classPathName, details, notCoveredLinesString, partlyCoveredLinesString);
