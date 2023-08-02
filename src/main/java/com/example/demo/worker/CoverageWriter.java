@@ -69,12 +69,12 @@ public class CoverageWriter {
         logger.info("start to run mvn test for: " + projectPath);
 //        CommandUtils.runMvnTest(projectPath);
 
-        this.extractor = new CoverageDetailExtractor(projectPath);
+        extractor = new CoverageDetailExtractor(projectPath);
 
         logger.info("start to analyze jacoco report");
         Map<String, List<MethodCoverage>> lowCoverageMethods = analyzer.analyzeReport(projectPath);
 
-        this.budget = openAIProperties.getProjectBudget();
+        budget = openAIProperties.getProjectBudget();
         try {
             for (String classPathName : lowCoverageMethods.keySet()) {
                 handleClass(classPathName, lowCoverageMethods.get(classPathName));
@@ -140,7 +140,7 @@ public class CoverageWriter {
     }
 
     protected String handleCoverageStep(String classPathName, Step step, String prompt) throws IOException, InterruptedException {
-        if (this.budget <= 0) {
+        if (budget <= 0) {
             throw new BudgetExceededException("Budget exceeded. Ending execution.");
         }
         String errMsg = null;
@@ -152,8 +152,8 @@ public class CoverageWriter {
         addUserMessages(prompt);
         // Call to OpenAI API with the prompt here, and get the generated test
         OpenAIResult result = openAIApiService.generateUnitTest(step, messages, hasTestFile);
-        this.budget = this.budget - result.getCost();
-        logger.info("Remain budget is " + this.budget);
+        budget = budget - result.getCost();
+        logger.info("Remain budget is " + budget);
         String codeBlock = JavaFileUtils.extractMarkdownCodeBlocks(result.getContent());
 
         if (codeBlock == null) {
@@ -163,7 +163,7 @@ public class CoverageWriter {
             // Write the test
             JavaFileUtils.writeTest(codeBlock, testFilePath, classPathName);
             // Run the test
-            errMsg = CommandUtils.runTest(this.projectPath, classPathName);
+            errMsg = CommandUtils.runTest(projectPath, classPathName);
         }
         if (errMsg == null) {
             changeHelper.complete();
@@ -176,10 +176,10 @@ public class CoverageWriter {
     protected String preparePrompt(String classPathName, MethodDetails details, String notCoveredLinesString, String partlyCoveredLinesString) throws IOException {
         String promptTemplate = loadTemplate(hasTestFile ? "exists" : "new");
 
-        String prompt = String.format(promptTemplate, this.projectInfo, classPathName, details.getCodeWithLineNumbers(),
+        String prompt = String.format(promptTemplate, projectInfo, classPathName, details.getCodeWithLineNumbers(),
                 notCoveredLinesString, partlyCoveredLinesString);
 
-        if (partlyCoveredLinesString.length() > 0) {
+        if (!partlyCoveredLinesString.isEmpty()) {
             prompt += "The following lines are partly covered:\n" + partlyCoveredLinesString;
         }
 
@@ -199,7 +199,7 @@ public class CoverageWriter {
         Message userMessage = new Message();
         userMessage.setRole("user");
         userMessage.setContent(prompt);
-        this.messages.add(userMessage);
+        messages.add(userMessage);
     }
 
     protected String loadTemplate(String templateType) throws IOException {

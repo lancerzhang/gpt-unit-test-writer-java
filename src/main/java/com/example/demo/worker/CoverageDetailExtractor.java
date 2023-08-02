@@ -30,7 +30,7 @@ public class CoverageDetailExtractor {
 
         final CoverageBuilder coverageBuilder = new CoverageBuilder();
         final Analyzer analyzer = new Analyzer(execFileLoader.getExecutionDataStore(), coverageBuilder);
-        analyzer.analyzeAll(new File(this.projectPath +
+        analyzer.analyzeAll(new File(projectPath +
                 changeToSystemFileSeparator("/target/classes/" + className + ".class")));
 
         for (final IClassCoverage cc : coverageBuilder.getClasses()) {
