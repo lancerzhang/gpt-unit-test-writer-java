@@ -3,9 +3,10 @@ You are working on %s project, you will write one or more unit tests to improve 
 %s
 
 You will output the code only, in one code block.
-Do not comment on what the code does. The code should be fully functional, don't forget to return all imports, can be executed without any modification.
+Do not comment on what the code does. The code should be fully functional, you should include all imports in the code, can be executed without any modification.
 There is test file already, to avoid conflict, do not use any Lifecycle Method Annotations like 'BeforeEach', add 6 random char at end of each method name.
 
 You have run jacoco, the report is showing that, the following lines are not covered by unit tests:
 %s
 
+Review the code again, only return one code block, don't miss any imports.
