@@ -6,6 +6,7 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 
@@ -74,6 +75,23 @@ public class JavaFileUtils {
         }
     }
 
+    protected static void insertFields(String fields, CompilationUnit cu) {
+        // Parse the fields as a CompilationUnit
+        CompilationUnit fieldCu = StaticJavaParser.parse(fields);
+
+        // Get all the field declarations from the fieldCu
+        List<FieldDeclaration> fieldDeclarations = fieldCu.findAll(FieldDeclaration.class);
+
+        // Add the fields to the first class in the existing CompilationUnit
+        TypeDeclaration<?> firstClass = cu.findFirst(TypeDeclaration.class).orElse(null);
+        if (firstClass != null) {
+            int insertIndex = 0;  // insert at the beginning
+            for (FieldDeclaration fd : fieldDeclarations) {
+                firstClass.getMembers().add(insertIndex++, fd);
+            }
+        }
+    }
+
     protected static void insertMethods(String methods, CompilationUnit cu) {
         // Parse the methods as a CompilationUnit
         CompilationUnit methodCu = StaticJavaParser.parse(methods);
@@ -115,6 +133,7 @@ public class JavaFileUtils {
                 // Insert imports and method
                 insertImports(generatedTest, cu);
                 insertMethods(generatedTest, cu);
+                insertFields(generatedTest, cu);
 
                 // Write the modified CompilationUnit back to the file
                 Files.write(testFile.toPath(), cu.toString().getBytes(StandardCharsets.UTF_8));
