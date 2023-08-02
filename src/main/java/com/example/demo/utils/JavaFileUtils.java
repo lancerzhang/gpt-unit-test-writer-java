@@ -158,4 +158,8 @@ public class JavaFileUtils {
         }
     }
 
+    public static String changeToSystemFileSeparator(String input) {
+        return input.replace("/", File.separator);
+    }
+
 }

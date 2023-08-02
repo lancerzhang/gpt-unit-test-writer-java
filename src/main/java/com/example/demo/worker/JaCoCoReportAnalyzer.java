@@ -14,12 +14,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.example.demo.utils.JavaFileUtils.changeToSystemFileSeparator;
+
 public class JaCoCoReportAnalyzer {
 
     public Map<String, List<MethodCoverage>> analyzeReport(String projectPath) throws Exception {
         Map<String, List<MethodCoverage>> lowCoverageMethods = new HashMap<>();
 
-        File jacocoReport = new File(projectPath + "/target/site/jacoco/jacoco.xml");
+        File jacocoReport = new File(projectPath + changeToSystemFileSeparator("/target/site/jacoco/jacoco.xml"));
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);

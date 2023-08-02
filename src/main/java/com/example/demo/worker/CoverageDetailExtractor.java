@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.demo.utils.JavaFileUtils.changeToSystemFileSeparator;
+
 public class CoverageDetailExtractor {
 
     private final String projectPath;
@@ -16,7 +18,7 @@ public class CoverageDetailExtractor {
 
     public CoverageDetailExtractor(String projectPath) throws IOException {
         this.projectPath = projectPath;
-        File EXEC_FILE = new File(projectPath + "/target/jacoco.exec");
+        File EXEC_FILE = new File(projectPath + changeToSystemFileSeparator("/target/jacoco.exec"));
         final ExecFileLoader execFileLoader = new ExecFileLoader();
         execFileLoader.load(EXEC_FILE);
         this.execFileLoader = execFileLoader;
@@ -28,7 +30,8 @@ public class CoverageDetailExtractor {
 
         final CoverageBuilder coverageBuilder = new CoverageBuilder();
         final Analyzer analyzer = new Analyzer(execFileLoader.getExecutionDataStore(), coverageBuilder);
-        analyzer.analyzeAll(new File(this.projectPath + "/target/classes/" + className + ".class"));
+        analyzer.analyzeAll(new File(this.projectPath +
+                changeToSystemFileSeparator("/target/classes/" + className + ".class")));
 
         for (final IClassCoverage cc : coverageBuilder.getClasses()) {
             for (int i = cc.getFirstLine(); i <= cc.getLastLine(); i++) {

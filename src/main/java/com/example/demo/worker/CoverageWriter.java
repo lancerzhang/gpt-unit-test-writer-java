@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.example.demo.utils.JavaFileUtils.changeToSystemFileSeparator;
+
 @Service
 public class CoverageWriter {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -58,7 +60,8 @@ public class CoverageWriter {
 
     public void setProjectPath(String projectPath) throws Exception {
         this.projectPath = projectPath;
-        ProjectInfoExtractor projectInfoExtractor = new ProjectInfoExtractor(projectPath + "/pom.xml");
+        ProjectInfoExtractor projectInfoExtractor = new ProjectInfoExtractor(projectPath +
+                changeToSystemFileSeparator("/pom.xml"));
         this.projectInfo = projectInfoExtractor.getProjectInfo();
     }
 
@@ -89,7 +92,7 @@ public class CoverageWriter {
             return;
         }
 
-        String javaFilePath = new File(projectPath, "/src/main/java/" + classPathName + ".java").getPath();
+        String javaFilePath = new File(projectPath, changeToSystemFileSeparator("/src/main/java/" + classPathName + ".java")).getPath();
         String[] classPathSegments = classPathName.split("/");
         String className = classPathSegments[classPathSegments.length - 1];
 
@@ -121,7 +124,7 @@ public class CoverageWriter {
             createInitialMessages();
 
             // Define the path of the test file
-            testFilePath = projectPath + "/src/test/java/" + classPathName + "Test.java";
+            testFilePath = projectPath + changeToSystemFileSeparator("/src/test/java/" + classPathName + "Test.java");
             hasTestFile = new File(testFilePath).exists();
 
             String prompt = preparePrompt(classPathName, details, notCoveredLinesString, partlyCoveredLinesString);

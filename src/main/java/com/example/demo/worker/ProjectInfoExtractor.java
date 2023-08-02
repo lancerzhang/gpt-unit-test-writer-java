@@ -14,6 +14,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collection;
 
+import static com.example.demo.utils.JavaFileUtils.changeToSystemFileSeparator;
+
 public class ProjectInfoExtractor {
 
     private final Document doc;
@@ -51,7 +53,7 @@ public class ProjectInfoExtractor {
     protected String determineJUnitVersion() throws IOException {
         // You'll need a proper way to obtain all test files in your project.
         // This is a simplified example where we assume all test files are in src/test/java and end with Test.java
-        File testDir = new File(projectDir, "/src/test/java");
+        File testDir = new File(projectDir, changeToSystemFileSeparator("/src/test/java"));
         Collection<File> testFiles = FileUtils.listFiles(testDir, new String[]{"java"}, true);
 
         for (File testFile : testFiles) {
