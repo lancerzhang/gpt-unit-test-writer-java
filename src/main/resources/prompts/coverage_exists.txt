@@ -9,4 +9,4 @@ There is test file already, to avoid conflict, do not use any Lifecycle Method A
 You have run jacoco, the report is showing that, the following lines are not covered by unit tests:
 %s
 
-Review the code again, only return one code block, don't miss any imports.
+Review the code again, only return one code block, don't add any Lifecycle Method Annotations such as '@BeforeEach', don't miss any imports.
