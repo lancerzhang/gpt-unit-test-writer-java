@@ -121,6 +121,7 @@ public class CoverageWriter {
         String partlyCoveredLinesString = coverageLines.getValue();
 
         for (Step step : applicationProperties.getSteps().get("coverage")) {
+            logger.info("Start to generate unit test.");
             createInitialMessages();
 
             // Define the path of the test file
@@ -131,6 +132,7 @@ public class CoverageWriter {
             String errMsg = handleCoverageStep(classPathName, step, prompt);
 
             if (errMsg != null && step.getFeedback().equals("true")) {
+                logger.info("Start to feedback error.");
                 // Load error_feedback.txt as a prompt
                 String feedbackPromptTemplate = loadTemplate("feedback");
                 String feedbackPrompt = String.format(feedbackPromptTemplate, errMsg);
