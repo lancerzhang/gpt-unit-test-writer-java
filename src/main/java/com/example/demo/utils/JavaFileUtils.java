@@ -18,8 +18,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -42,6 +40,7 @@ public class JavaFileUtils {
 
                         // Build the com.example.demo.model.MethodDetails object
                         MethodDetails details = new MethodDetails();
+                        details.setMethodName(methodName);
                         details.setCode(method.toString());
                         details.setStartLine(method.getBegin().get().line);
                         details.setEndLine(method.getEnd().get().line);
@@ -171,31 +170,6 @@ public class JavaFileUtils {
             throw new FailedGeneratedTestException("Failed to write unit test to file.");
         }
 
-    }
-
-    public static String extractMarkdownCodeBlocks(String input) {
-        String patternStr = "```(?:.*?\\n)?(.*?)```";
-        Pattern pattern = Pattern.compile(patternStr, Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(input);
-        StringBuilder stringBuilder = new StringBuilder();
-        int matches = 0;
-
-        while (matcher.find()) {
-            matches++;
-            stringBuilder.append(matcher.group(1).trim()).append("\n");
-        }
-
-        if (matches > 1) {
-            return null;
-        } else if (matches == 1) {
-            return stringBuilder.toString().trim();
-        } else {
-            return input;
-        }
-    }
-
-    public static String changeToSystemFileSeparator(String input) {
-        return input.replace("/", File.separator);
     }
 
 }

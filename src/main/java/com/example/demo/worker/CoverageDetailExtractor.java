@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.demo.utils.JavaFileUtils.changeToSystemFileSeparator;
+import static com.example.demo.utils.FileUtils.changeToSystemFileSeparator;
 
 public class CoverageDetailExtractor {
 

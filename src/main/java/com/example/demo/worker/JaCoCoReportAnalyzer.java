@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.demo.utils.JavaFileUtils.changeToSystemFileSeparator;
+import static com.example.demo.utils.FileUtils.changeToSystemFileSeparator;
 
 public class JaCoCoReportAnalyzer {
 

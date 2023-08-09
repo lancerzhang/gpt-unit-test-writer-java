@@ -10,10 +10,7 @@ import com.example.demo.model.Step;
 import com.example.demo.model.openai.Message;
 import com.example.demo.model.openai.OpenAIResult;
 import com.example.demo.service.OpenAIApiService;
-import com.example.demo.utils.ChangeHelper;
-import com.example.demo.utils.CommandUtils;
-import com.example.demo.utils.CoverageUtils;
-import com.example.demo.utils.JavaFileUtils;
+import com.example.demo.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,15 +27,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.demo.utils.JavaFileUtils.changeToSystemFileSeparator;
+import static com.example.demo.utils.FileUtils.changeToSystemFileSeparator;
 
 @Service
 public class CoverageWriter {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final JaCoCoReportAnalyzer analyzer = new JaCoCoReportAnalyzer();
+    private final String javaSrcPath = "/src/main/java/";
     private CoverageDetailExtractor extractor;
-
     @Autowired
     private ApplicationProperties applicationProperties;
     @Autowired
@@ -53,6 +50,7 @@ public class CoverageWriter {
     private Resource errorFeedbackResource;
     private String projectPath;
     private String projectInfo;
+    private String projectBasePackage;
     private double budget;
     private ArrayList<Message> messages;
     private String testFilePath;
@@ -62,12 +60,13 @@ public class CoverageWriter {
         this.projectPath = projectPath;
         ProjectInfoExtractor projectInfoExtractor = new ProjectInfoExtractor(projectPath +
                 changeToSystemFileSeparator("/pom.xml"));
+        this.projectBasePackage = projectInfoExtractor.extractBasePackage();
         this.projectInfo = projectInfoExtractor.getProjectInfo();
     }
 
     public void generateUnitTest() throws Exception {
         logger.info("start to run mvn test for: " + projectPath);
-//        CommandUtils.runMvnTest(projectPath);
+        CommandUtils.runMvnTest(projectPath);
 
         extractor = new CoverageDetailExtractor(projectPath);
 
@@ -92,7 +91,7 @@ public class CoverageWriter {
             return;
         }
 
-        String javaFilePath = new File(projectPath, changeToSystemFileSeparator("/src/main/java/" + classPathName + ".java")).getPath();
+        String javaFilePath = new File(projectPath, changeToSystemFileSeparator(javaSrcPath + classPathName + ".java")).getPath();
         String[] classPathSegments = classPathName.split("/");
         String className = classPathSegments[classPathSegments.length - 1];
 
@@ -107,11 +106,11 @@ public class CoverageWriter {
                 continue;
             }
             MethodDetails details = methodDetailsMap.get(methodName);
-            handleMethod(classPathName, details, coverageDetails);
+            handleMethod(javaFilePath, classPathName, details, coverageDetails);
         }
     }
 
-    protected void handleMethod(String classPathName, MethodDetails details, CoverageDetails coverageDetails) throws IOException, InterruptedException {
+    protected void handleMethod(String javaFilePath, String classPathName, MethodDetails details, CoverageDetails coverageDetails) throws IOException, InterruptedException {
         if (details == null) {
             return;
         }
@@ -128,6 +127,9 @@ public class CoverageWriter {
             testFilePath = projectPath + changeToSystemFileSeparator("/src/test/java/" + classPathName + "Test.java");
             hasTestFile = new File(testFilePath).exists();
 
+            CustomClassExtractor customClassExtractor = new CustomClassExtractor();
+            String javaSrcFullPath = changeToSystemFileSeparator(projectPath + javaSrcPath);
+            String methodSignatures = customClassExtractor.extractCustomClass(javaSrcFullPath, projectBasePackage, javaFilePath, details.getMethodName());
             String prompt = preparePrompt(classPathName, details, notCoveredLinesString, partlyCoveredLinesString);
             String errMsg = handleCoverageStep(classPathName, step, prompt);
 
@@ -156,7 +158,7 @@ public class CoverageWriter {
         OpenAIResult result = openAIApiService.generateUnitTest(step, messages, hasTestFile);
         budget = budget - result.getCost();
         logger.info("Remain budget is " + budget);
-        String codeBlock = JavaFileUtils.extractMarkdownCodeBlocks(result.getContent());
+        String codeBlock = FileUtils.extractMarkdownCodeBlocks(result.getContent());
 
         if (codeBlock == null) {
             errMsg = "Expect one code block in openAI response but it's not.";

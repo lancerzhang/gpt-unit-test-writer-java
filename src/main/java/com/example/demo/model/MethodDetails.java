@@ -8,6 +8,7 @@ import java.util.Set;
 @Getter
 @Setter
 public class MethodDetails {
+    private String methodName;
     private String code;
     private int startLine;
     private int endLine;

@@ -12,9 +12,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import static com.example.demo.utils.JavaFileUtils.changeToSystemFileSeparator;
+import static com.example.demo.utils.FileUtils.changeToSystemFileSeparator;
 
 public class ProjectInfoExtractor {
 
@@ -123,5 +129,37 @@ public class ProjectInfoExtractor {
         }
 
         return result;
+    }
+
+    public String extractBasePackage() {
+        try {
+            Path startPath = Paths.get(projectDir + changeToSystemFileSeparator("/src/main/java"));
+            String packageStatement = Files.walk(startPath)
+                    .filter(Files::isRegularFile)
+                    .filter(p -> p.toString().endsWith(".java"))
+                    .flatMap(p -> extractPackageFromMainApp(p).stream())
+                    .findFirst()
+                    .orElse("No base package found.");
+            int startIndex = packageStatement.indexOf(" ") + 1;
+            int endIndex = packageStatement.lastIndexOf(";");
+            return packageStatement.substring(startIndex, endIndex).trim().replaceAll("\\s+", ".");
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading source files", e);
+        }
+    }
+
+    private List<String> extractPackageFromMainApp(Path path) {
+        try {
+            List<String> lines = Files.readAllLines(path);
+            boolean isMain = lines.stream().anyMatch(line -> line.contains("@SpringBootApplication"));
+            if (isMain) {
+                return lines.stream()
+                        .filter(line -> line.startsWith("package"))
+                        .collect(Collectors.toList());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading file " + path, e);
+        }
+        return Collections.emptyList();
     }
 }
