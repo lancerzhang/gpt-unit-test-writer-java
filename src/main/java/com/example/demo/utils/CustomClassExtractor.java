@@ -22,7 +22,7 @@ public class CustomClassExtractor {
     private final Set<String> customClasses = new HashSet<>();
     private final Set<String> customMethods = new HashSet<>();
 
-    public String extractCustomClass(String projectPath, String basePackage, String filePath, String targetMethod) throws IOException {
+    public String extractCustomClassSignature(String projectPath, String basePackage, String filePath, String targetMethod) throws IOException {
         CompilationUnit cu = StaticJavaParser.parse(Files.newInputStream(Paths.get(filePath)));
         cu.accept(new TargetMethodVisitor(targetMethod), null);
 
@@ -30,9 +30,9 @@ public class CustomClassExtractor {
         for (String className : customClasses) {
             cu.accept(new ClassConstructorVisitor(className, projectPath, basePackage), result);
         }
-        for (String methodName : customMethods) {
-            cu.accept(new MethodVisitor(methodName), result);
-        }
+//        for (String methodName : customMethods) {
+//            cu.accept(new MethodVisitor(methodName), result);
+//        }
 
         return result.toString();
     }

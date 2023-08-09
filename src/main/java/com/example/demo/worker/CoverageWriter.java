@@ -129,8 +129,8 @@ public class CoverageWriter {
 
             CustomClassExtractor customClassExtractor = new CustomClassExtractor();
             String javaSrcFullPath = changeToSystemFileSeparator(projectPath + javaSrcPath);
-            String methodSignatures = customClassExtractor.extractCustomClass(javaSrcFullPath, projectBasePackage, javaFilePath, details.getMethodName());
-            String prompt = preparePrompt(classPathName, details, notCoveredLinesString, partlyCoveredLinesString);
+            String classSignatures = customClassExtractor.extractCustomClassSignature(javaSrcFullPath, projectBasePackage, javaFilePath, details.getMethodName());
+            String prompt = preparePrompt(classPathName, details, notCoveredLinesString, partlyCoveredLinesString, classSignatures);
             String errMsg = handleCoverageStep(classPathName, step, prompt);
 
             if (errMsg != null && step.getFeedback().equals("true")) {
@@ -177,14 +177,28 @@ public class CoverageWriter {
         return errMsg;
     }
 
-    protected String preparePrompt(String classPathName, MethodDetails details, String notCoveredLinesString, String partlyCoveredLinesString) throws IOException {
+    protected String preparePrompt(String classPathName, MethodDetails details, String notCoveredLinesString, String partlyCoveredLinesString, String classSignatures) throws IOException {
         String promptTemplate = loadTemplate(hasTestFile ? "exists" : "new");
 
-        String prompt = String.format(promptTemplate, projectInfo, classPathName, details.getCodeWithLineNumbers(),
-                notCoveredLinesString, partlyCoveredLinesString);
+        String extraInfo = "";
+        String prompt = "";
 
         if (!partlyCoveredLinesString.isEmpty()) {
-            prompt += "The following lines are partly covered:\n" + partlyCoveredLinesString;
+            extraInfo += "The following lines are partly covered:\n" + partlyCoveredLinesString + "\n\n";
+        }
+
+        if (classSignatures.isEmpty()) {
+            extraInfo += "All custom classes in " + projectBasePackage + " package only have default constructor.\n";
+        } else {
+            extraInfo += "Below custom classes in " + projectBasePackage + " package have custom constructor, other class only have default constructor.\n" + classSignatures;
+        }
+
+        if (hasTestFile) {
+            prompt = String.format(promptTemplate, projectInfo, classPathName, details.getCodeWithLineNumbers(),
+                    notCoveredLinesString, extraInfo);
+        } else {
+
+            prompt = String.format(promptTemplate, projectInfo, classPathName, details.getCodeWithLineNumbers(), extraInfo);
         }
 
         return prompt;
