@@ -155,7 +155,9 @@ public class CoverageWriter {
 
         addUserMessages(prompt);
         // Call to OpenAI API with the prompt here, and get the generated test
+        logger.debug(prompt);
         OpenAIResult result = openAIApiService.generateUnitTest(step, messages, hasTestFile);
+        logger.debug(result.getContent());
         budget = budget - result.getCost();
         logger.info("Remain budget is " + budget);
         String codeBlock = FileUtils.extractMarkdownCodeBlocks(result.getContent());
@@ -197,7 +199,6 @@ public class CoverageWriter {
             prompt = String.format(promptTemplate, projectInfo, classPathName, details.getCodeWithLineNumbers(),
                     notCoveredLinesString, extraInfo);
         } else {
-
             prompt = String.format(promptTemplate, projectInfo, classPathName, details.getCodeWithLineNumbers(), extraInfo);
         }
 

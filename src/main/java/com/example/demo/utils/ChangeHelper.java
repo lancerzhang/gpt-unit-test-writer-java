@@ -16,11 +16,13 @@ public class ChangeHelper {
         this.hasTestFile = hasTestFile;
     }
 
-    public void complete() throws IOException {
-        File backupFile = new File(backupFilePath);
-        // Check if backup file exists, and delete if it does
-        if (backupFile.exists()) {
-            backupFile.delete();
+    public void complete() {
+        if (backupFilePath != null) {
+            File backupFile = new File(backupFilePath);
+            // Check if backup file exists, and delete if it does
+            if (backupFile.exists()) {
+                backupFile.delete();
+            }
         }
     }
 

@@ -166,7 +166,8 @@ public class JavaFileUtils {
 
                 Files.write(testFile.toPath(), bytes, StandardOpenOption.CREATE);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
+            e.printStackTrace();
             throw new FailedGeneratedTestException("Failed to write unit test to file.");
         }
 
