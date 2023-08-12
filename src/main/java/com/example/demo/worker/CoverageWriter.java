@@ -130,7 +130,10 @@ public class CoverageWriter {
             CustomClassExtractor customClassExtractor = new CustomClassExtractor();
             String javaSrcFullPath = changeToSystemFileSeparator(projectPath + javaSrcPath);
             String classSignatures = customClassExtractor.extractCustomClassSignature(javaSrcFullPath, projectBasePackage, javaFilePath, details.getMethodName());
-            String prompt = preparePrompt(classPathName, details, notCoveredLinesString, partlyCoveredLinesString, classSignatures);
+            Map<String, Double> modelPrice = openAIProperties.getModelPrice(step);
+            int tokens = modelPrice.get("tokens").intValue();
+            ;
+            String prompt = preparePrompt(classPathName, details, notCoveredLinesString, partlyCoveredLinesString, classSignatures, tokens);
             String errMsg = handleCoverageStep(classPathName, step, prompt);
 
             if (errMsg != null && step.getFeedback().equals("true")) {
@@ -179,7 +182,7 @@ public class CoverageWriter {
         return errMsg;
     }
 
-    protected String preparePrompt(String classPathName, MethodDetails details, String notCoveredLinesString, String partlyCoveredLinesString, String classSignatures) throws IOException {
+    protected String preparePrompt(String classPathName, MethodDetails details, String notCoveredLinesString, String partlyCoveredLinesString, String classSignatures, int tokens) throws IOException {
         String promptTemplate = loadTemplate(hasTestFile ? "exists" : "new");
 
         String extraInfo = "";
@@ -202,6 +205,7 @@ public class CoverageWriter {
             prompt = String.format(promptTemplate, projectInfo, classPathName, details.getCodeWithLineNumbers(), extraInfo);
         }
 
+        prompt += "Please limit the request and response token to " + tokens;
         return prompt;
     }
 

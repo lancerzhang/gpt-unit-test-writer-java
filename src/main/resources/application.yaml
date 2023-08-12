@@ -6,16 +6,20 @@ openai:
   pricing:
     gpt-35-turbo:
       context-4k:
+        tokens: 4096
         input-1k: 0.0015
         output-1k: 0.002
       context-16k:
+        tokens: 16384
         input-1k: 0.003
         output-1k: 0.004
     gpt-4:
       context-8k:
+        tokens: 8192
         input-1k: 0.03
         output-1k: 0.06
       context-32k:
+        tokens: 32768
         input-1k: 0.06
         output-1k: 0.12
 

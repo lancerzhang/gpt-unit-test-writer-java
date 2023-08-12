@@ -1,5 +1,6 @@
 package com.example.demo.config;
 
+import com.example.demo.model.Step;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -19,4 +20,8 @@ public class OpenAIProperties {
     private String contextLength;
     private double projectBudget;
     private Map<String, Map<String, Map<String, Double>>> pricing;
+
+    public Map<String, Double> getModelPrice(Step step) {
+        return this.getPricing().get(step.getModel()).get(step.getContextLength());
+    }
 }

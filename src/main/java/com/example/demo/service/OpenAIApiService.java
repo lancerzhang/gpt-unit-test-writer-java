@@ -78,7 +78,7 @@ public class OpenAIApiService {
         String content = response.getChoices().get(0).getMessage().getContent();
 
         // Calculate cost
-        Map<String, Double> modelPrice = openAIProperties.getPricing().get(step.getModel()).get(step.getContextLength());
+        Map<String, Double> modelPrice = openAIProperties.getModelPrice(step);
         double costPerInputToken = modelPrice.get("input-1k") / 1000;
         double costPerOutputToken = modelPrice.get("output-1k") / 1000;
         double inputTokens = response.getUsage().getPrompt_tokens();
