@@ -1,0 +1,27 @@
+{
+	"info": {
+		"_postman_id": "7528fe9d-b0e7-44aa-89c1-d71825e8fd6d",
+		"name": "gpt-unit-test-writer",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get User",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/users/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"users",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

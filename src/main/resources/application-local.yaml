@@ -4,7 +4,34 @@ openai:
   api_version: 2023-05-15
   projectBudget: 0.0000001
 
+server:
+  forward-headers-strategy: NATIVE
+  port: ${APP_PORT:8080}
+  servlet:
+    contextPath: /${APP_NAME:}
+
+spring:
+  resources:
+    static-locations: classpath:/static/
+
+appData: ${APP_DATA:undefined}
+
 logging:
   level:
     root: INFO
     com.example.demo: DEBUG
+    org.hibernate.SQL: DEBUG
+#    org.hibernate.type: TRACE
+
+security:
+  oauth2:
+    client:
+      accessTokenUri: http://localhost:8080/api/v1/oauth2/simulator/token
+      userAuthorizationUri: http://localhost:8080/api/v1/oauth2/simulator/authorize
+      clientAuthenticationScheme: form
+      clientId: client
+      clientSecret: secret
+    resource:
+      preferTokenInfo: false
+      userInfoUri: http://localhost:8080/api/v1/oauth2/simulator/simulator/me
+      tokenInfoUri: http://localhost:8080/api/v1/oauth2/simulator/check_token

@@ -4,7 +4,21 @@ openai:
   api_version: 2023-05-15
   projectBudget: 1.0
 
+server:
+  forward-headers-strategy: NATIVE
+  port: ${APP_PORT:8080}
+  servlet:
+    contextPath: /${APP_NAME:}
+
+spring:
+  resources:
+    static-locations: classpath:/static/
+
+appData: ${APP_DATA:undefined}
+
 logging:
   level:
     root: INFO
-    com.example.demo: DEBUG
+    com.example.demo: INFO
+    org.hibernate.SQL: INFO
+#    org.hibernate.type: TRACE
