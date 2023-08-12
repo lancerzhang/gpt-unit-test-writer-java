@@ -25,6 +25,10 @@ public class InitialDataLoader implements CommandLineRunner {
                 "  \"email\": \"sample.user@example.com\"\n" +
                 "}";
         User user = new ObjectMapper().readValue(userJsonStr, User.class);
-        user = userService.createUser(user);
+        try {
+            userService.createUser(user);
+        } catch (Exception e) {
+            System.out.println("User already exists.");
+        }
     }
 }
