@@ -5,6 +5,7 @@ import com.example.gptunittestwriterjava.entity.Job;
 import com.example.gptunittestwriterjava.entity.JobStatus;
 import com.example.gptunittestwriterjava.entity.JobType;
 import com.example.gptunittestwriterjava.entity.User;
+import com.example.gptunittestwriterjava.exception.ExistingJobException;
 import com.example.gptunittestwriterjava.exception.InsufficientBudgetException;
 import com.example.gptunittestwriterjava.repository.JobRepository;
 import com.example.gptunittestwriterjava.repository.UserRepository;
@@ -14,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -35,10 +38,20 @@ public class JobService {
         if (user.getBudget() <= 0) {
             throw new InsufficientBudgetException("User has insufficient budget.");
         }
+
+        // Check for existing job
+        List<JobStatus> statuses = Arrays.asList(JobStatus.NOT_STARTED, JobStatus.IN_PROGRESS);
+        JobType jobType = JobType.valueOf(dto.getJobType().toUpperCase());
+
+        Optional<Job> existingJob = jobRepository.findByGithubRepoAndBranchAndJobTypeAndStatusIn(dto.getGithubRepo(), dto.getBranch(), jobType, statuses);
+
+        if (existingJob.isPresent()) {
+            throw new ExistingJobException("A job with the given criteria is already in progress or not started.");
+        }
+
         Job job = new Job();
         job.setGithubRepo(dto.getGithubRepo());
         job.setBranch(dto.getBranch());
-        JobType jobType = JobType.valueOf(dto.getJobType().toUpperCase());
         job.setJobType(jobType);
         job.setUser(user);
         job.setStatus(JobStatus.NOT_STARTED);
