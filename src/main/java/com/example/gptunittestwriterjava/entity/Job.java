@@ -11,6 +11,8 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
+@NamedEntityGraph(name = "graph.Job.user",
+        attributeNodes = @NamedAttributeNode("user"))
 public class Job {
 
     @Id
