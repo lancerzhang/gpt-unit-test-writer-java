@@ -3,6 +3,7 @@ package com.example.gptunittestwriterjava.service;
 import com.example.gptunittestwriterjava.DTO.JobCreationDTO;
 import com.example.gptunittestwriterjava.entity.Job;
 import com.example.gptunittestwriterjava.entity.JobStatus;
+import com.example.gptunittestwriterjava.entity.User;
 import com.example.gptunittestwriterjava.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -25,7 +26,9 @@ public class JobService {
         Job job = new Job();
         job.setProjectId(dto.getProjectId());
         job.setJobType(dto.getJobType());
-        job.setUserId(userId);
+        User user = new User();
+        user.setId(userId);
+        job.setUser(user);
         job.setStatus(JobStatus.NOT_STARTED);
 
         return jobRepository.save(job);

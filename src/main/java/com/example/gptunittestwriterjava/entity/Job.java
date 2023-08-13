@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import java.time.Instant;
 import java.util.Date;
@@ -20,7 +19,9 @@ public class Job {
 
     @NotBlank
     private String projectId;
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
     @NotBlank
     private String jobType;
     private Instant startTime;
