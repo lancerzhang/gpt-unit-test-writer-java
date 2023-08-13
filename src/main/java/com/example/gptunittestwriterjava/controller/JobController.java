@@ -1,7 +1,7 @@
 package com.example.gptunittestwriterjava.controller;
 
 import com.example.gptunittestwriterjava.entity.Job;
-import com.example.gptunittestwriterjava.repository.JobRepository;
+import com.example.gptunittestwriterjava.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,23 +17,17 @@ import java.util.Optional;
 public class JobController {
 
     @Autowired
-    private JobRepository jobRepository;
+    private JobService jobService;
 
-    // Fetch job by ID
     @GetMapping("/{id}")
     public ResponseEntity<Job> getJob(@PathVariable Long id) {
-        Optional<Job> job = jobRepository.findById(id);
-        if (job.isPresent()) {
-            return ResponseEntity.ok(job.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        Optional<Job> job = jobService.getJobById(id);
+        return job.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Create a new job
     @PostMapping
     public ResponseEntity<Job> createJob(@RequestBody Job job) {
-        Job createdJob = jobRepository.save(job);
+        Job createdJob = jobService.createJob(job);
         return ResponseEntity.ok(createdJob);
     }
 
@@ -42,10 +36,10 @@ public class JobController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        // Pageable with sorting by id in descending order
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("id")));
-        Page<Job> jobsPage = jobRepository.findAll(pageable);
+        Page<Job> jobsPage = jobService.getAllJobs(pageable);
 
         return ResponseEntity.ok(jobsPage);
     }
+
 }
