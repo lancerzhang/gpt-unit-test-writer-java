@@ -30,7 +30,7 @@ public class UserConverter extends DefaultUserAuthenticationConverter {
             dbuser.setEmail(email);
             dbuser = userService.createUser(dbuser);
         }
-        Integer myId = dbuser.getId();
+        Long myId = dbuser.getId();
         PrincipalUser principalUser = new PrincipalUser(myId, employeeId, displayName, email);
         return new UsernamePasswordAuthenticationToken(principalUser, authentication.getCredentials(), authentication.getAuthorities());
     }

@@ -10,13 +10,13 @@ import java.util.List;
 @Setter
 public class PrincipalUser {
 
-    private final Integer id;
+    private final Long id;
     private final String employeeId;
     private final String displayName;
     private final String email;
     private List<Integer> delegators;
 
-    public PrincipalUser(Integer id, String employeeId, String displayName, String email) {
+    public PrincipalUser(Long id, String employeeId, String displayName, String email) {
         this.id = id;
         this.employeeId = employeeId;
         this.displayName = displayName;

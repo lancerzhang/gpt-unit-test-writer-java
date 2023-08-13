@@ -20,13 +20,7 @@ public class Job {
 
     @NotBlank
     private String projectId;
-    @NotBlank
-    private String employeeId;
-    @NotBlank
-    private String username;
-    @NotBlank
-    @Email
-    private String email;
+    private Long userId;
     @NotBlank
     private String jobType;
     private Instant startTime;

@@ -19,7 +19,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User getUser(Integer id) {
+    public User getUser(Long id) {
         return userRepository.findById(id).orElse(null);
     }
 
@@ -27,7 +27,7 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public User updateUser(Integer id, User updatedUser) {
+    public User updateUser(Long id, User updatedUser) {
         User existingUser = getUser(id);
         if (existingUser == null) {
             return null;

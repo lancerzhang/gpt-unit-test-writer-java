@@ -1,6 +1,8 @@
 package com.example.gptunittestwriterjava.service;
 
+import com.example.gptunittestwriterjava.DTO.JobCreationDTO;
 import com.example.gptunittestwriterjava.entity.Job;
+import com.example.gptunittestwriterjava.entity.JobStatus;
 import com.example.gptunittestwriterjava.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,7 +21,13 @@ public class JobService {
         return jobRepository.findById(id);
     }
 
-    public Job createJob(Job job) {
+    public Job createJob(JobCreationDTO dto, Long userId) {
+        Job job = new Job();
+        job.setProjectId(dto.getProjectId());
+        job.setJobType(dto.getJobType());
+        job.setUserId(userId);
+        job.setStatus(JobStatus.NOT_STARTED);
+
         return jobRepository.save(job);
     }
 

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Integer> {
+public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE LOWER(u.displayName) LIKE LOWER(CONCAT('%', :searchString, '%')) OR LOWER(u.employeeId) LIKE LOWER(CONCAT('%', :searchString, '%'))")
     List<User> searchByDisplayNameOrEmployeeId(@Param("searchString") String searchString, Pageable pageable);
 

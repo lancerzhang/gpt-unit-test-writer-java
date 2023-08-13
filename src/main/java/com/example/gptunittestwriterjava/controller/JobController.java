@@ -1,6 +1,8 @@
 package com.example.gptunittestwriterjava.controller;
 
+import com.example.gptunittestwriterjava.DTO.JobCreationDTO;
 import com.example.gptunittestwriterjava.entity.Job;
+import com.example.gptunittestwriterjava.oauth2.PrincipalUser;
 import com.example.gptunittestwriterjava.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -8,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -26,8 +29,9 @@ public class JobController {
     }
 
     @PostMapping
-    public ResponseEntity<Job> createJob(@RequestBody Job job) {
-        Job createdJob = jobService.createJob(job);
+    public ResponseEntity<Job> createJob(@RequestBody JobCreationDTO dto, Authentication authentication) {
+        PrincipalUser authenticatedUser = (PrincipalUser) authentication.getPrincipal();
+        Job createdJob = jobService.createJob(dto, authenticatedUser.getId());
         return ResponseEntity.ok(createdJob);
     }
 

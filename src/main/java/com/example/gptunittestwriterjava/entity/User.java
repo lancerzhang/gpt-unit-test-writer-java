@@ -18,7 +18,7 @@ import java.util.Date;
 public class User {
     @Id
     @GeneratedValue
-    private Integer id;
+    private Long id;
 
     @Column(name = "display_name", nullable = false)
     @Size(max = 255)

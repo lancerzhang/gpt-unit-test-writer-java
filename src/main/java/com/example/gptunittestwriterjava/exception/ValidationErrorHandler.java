@@ -21,7 +21,7 @@ public class ValidationErrorHandler {
     @ResponseBody
     public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
-        PrincipalUser geh = new PrincipalUser(1, "a", "b", "c");
+        PrincipalUser geh = new PrincipalUser(1L, "a", "b", "c");
         ex.getBindingResult().getAllErrors().forEach(error -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
