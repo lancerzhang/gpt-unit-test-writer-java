@@ -4,10 +4,13 @@ import com.example.gptunittestwriterjava.DTO.JobCreationDTO;
 import com.example.gptunittestwriterjava.entity.Job;
 import com.example.gptunittestwriterjava.entity.JobStatus;
 import com.example.gptunittestwriterjava.entity.User;
+import com.example.gptunittestwriterjava.exception.InsufficientBudgetException;
 import com.example.gptunittestwriterjava.repository.JobRepository;
+import com.example.gptunittestwriterjava.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -17,17 +20,23 @@ public class JobService {
 
     @Autowired
     private JobRepository jobRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     public Optional<Job> getJobById(Long id) {
         return jobRepository.findById(id);
     }
 
     public Job createJob(JobCreationDTO dto, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with userId: " + userId));
+
+        if (user.getBudget() <= 0) {
+            throw new InsufficientBudgetException("User has insufficient budget.");
+        }
         Job job = new Job();
         job.setProjectId(dto.getProjectId());
         job.setJobType(dto.getJobType());
-        User user = new User();
-        user.setId(userId);
         job.setUser(user);
         job.setStatus(JobStatus.NOT_STARTED);
 
