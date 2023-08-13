@@ -26,8 +26,8 @@ public class Job {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
-    @NotBlank
-    private String jobType;
+    @Enumerated(EnumType.STRING)
+    private JobType jobType;
     private Instant startTime;
     private int originScore;
     @Enumerated(EnumType.STRING)

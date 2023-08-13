@@ -3,6 +3,7 @@ package com.example.gptunittestwriterjava.service;
 import com.example.gptunittestwriterjava.DTO.JobCreationDTO;
 import com.example.gptunittestwriterjava.entity.Job;
 import com.example.gptunittestwriterjava.entity.JobStatus;
+import com.example.gptunittestwriterjava.entity.JobType;
 import com.example.gptunittestwriterjava.entity.User;
 import com.example.gptunittestwriterjava.exception.InsufficientBudgetException;
 import com.example.gptunittestwriterjava.repository.JobRepository;
@@ -37,7 +38,8 @@ public class JobService {
         Job job = new Job();
         job.setGithubRepo(dto.getGithubRepo());
         job.setBranch(dto.getBranch());
-        job.setJobType(dto.getJobType());
+        JobType jobType = JobType.valueOf(dto.getJobType().toUpperCase());
+        job.setJobType(jobType);
         job.setUser(user);
         job.setStatus(JobStatus.NOT_STARTED);
 
