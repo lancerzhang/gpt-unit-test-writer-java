@@ -19,6 +19,6 @@ appData: ${APP_DATA:undefined}
 logging:
   level:
     root: INFO
-    com.example.demo: INFO
+    com.example.gptunittestwriterjava: INFO
     org.hibernate.SQL: INFO
 #    org.hibernate.type: TRACE

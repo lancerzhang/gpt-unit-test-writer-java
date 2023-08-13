@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "7528fe9d-b0e7-44aa-89c1-d71825e8fd6d",
+		"_postman_id": "cbcdd3bf-edfa-4afe-b9f1-abbb478be7a6",
 		"name": "gpt-unit-test-writer",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -18,6 +18,77 @@
 					"path": [
 						"users",
 						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get a Job",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/jobs/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"jobs",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create a Job",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"projectId\": \"moblle/accounts\",\n    \"employeeId\": \"EMP001\",\n    \"username\": \"johndoe\",\n    \"email\": \"johndoe@example.com\",\n    \"jobType\": \"coverage\",\n    \"startTime\": \"2023-08-01T09:00:00Z\",\n    \"originScore\": 5,\n    \"status\": \"NOT_STARTED\",\n    \"endTime\": \"2023-08-01T11:00:00Z\",\n    \"endScore\": 57,\n    \"duration\": 120,\n    \"cost\": 5.08,\n    \"linesOfGenTests\": 23\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/jobs",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"jobs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all Jobs with pagination",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/jobs?page=0&size=10",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"jobs"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "0"
+						},
+						{
+							"key": "size",
+							"value": "10"
+						}
 					]
 				}
 			},
