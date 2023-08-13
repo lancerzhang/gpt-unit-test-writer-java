@@ -12,8 +12,10 @@ import java.util.Date;
 @Setter
 @Entity
 @Table(name = "job",
-        indexes = @Index(name = "idx_github_repo_branch_jobtype_status",
-                columnList = "githubRepo,branch,jobType,status"))
+        indexes = {
+                @Index(name = "idx_github_repo_branch_jobtype_status", columnList = "githubRepo,branch,jobType,status"),
+                @Index(name = "idx_status_id", columnList = "status, id")
+        })
 @NamedEntityGraph(name = "graph.Job.user",
         attributeNodes = @NamedAttributeNode("user"))
 public class Job {

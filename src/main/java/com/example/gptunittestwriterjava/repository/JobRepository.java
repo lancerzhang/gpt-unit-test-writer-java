@@ -17,4 +17,5 @@ public interface JobRepository extends JpaRepository<Job, Long> {
 
     Optional<Job> findByGithubRepoAndBranchAndJobTypeAndStatusIn(String githubRepo, String branch, JobType jobType, List<JobStatus> statuses);
 
+    List<Job> findByStatusOrderByIDAsc(JobStatus status);
 }

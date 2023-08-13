@@ -9,6 +9,8 @@ import com.example.gptunittestwriterjava.exception.ExistingJobException;
 import com.example.gptunittestwriterjava.exception.InsufficientBudgetException;
 import com.example.gptunittestwriterjava.repository.JobRepository;
 import com.example.gptunittestwriterjava.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +23,7 @@ import java.util.Optional;
 
 @Service
 public class JobService {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private JobRepository jobRepository;
@@ -63,4 +66,13 @@ public class JobService {
         return jobRepository.findAll(pageable);
     }
 
+    public List<Job> findNotStartedJobs() {
+        return jobRepository.findByStatusOrderByIDAsc(JobStatus.NOT_STARTED);
+    }
+
+    public void runJob(Job job) {
+        // Logic to run the job.
+        // Update the job's status, save results, etc.
+        logger.info("starting the job " + job.getId());
+    }
 }
