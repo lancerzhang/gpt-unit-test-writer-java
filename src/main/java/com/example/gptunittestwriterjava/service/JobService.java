@@ -35,7 +35,8 @@ public class JobService {
             throw new InsufficientBudgetException("User has insufficient budget.");
         }
         Job job = new Job();
-        job.setProjectId(dto.getProjectId());
+        job.setGithubRepo(dto.getGithubRepo());
+        job.setBranch(dto.getBranch());
         job.setJobType(dto.getJobType());
         job.setUser(user);
         job.setStatus(JobStatus.NOT_STARTED);

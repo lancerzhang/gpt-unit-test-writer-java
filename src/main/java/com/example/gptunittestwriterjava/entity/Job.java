@@ -20,7 +20,9 @@ public class Job {
     private Long id;
 
     @NotBlank
-    private String projectId;
+    private String githubRepo;
+    @NotBlank
+    private String branch;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;

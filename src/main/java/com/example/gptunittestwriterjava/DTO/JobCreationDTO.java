@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class JobCreationDTO {
-    private String projectId;
+    private String githubRepo;
+    private String branch;
     private String jobType;
-
 }

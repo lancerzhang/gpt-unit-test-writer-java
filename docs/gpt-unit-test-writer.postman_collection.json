@@ -53,7 +53,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"projectId\": \"moblle/accounts\",\n    \"employeeId\": \"EMP001\",\n    \"username\": \"johndoe\",\n    \"email\": \"johndoe@example.com\",\n    \"jobType\": \"coverage\",\n    \"startTime\": \"2023-08-01T09:00:00Z\",\n    \"originScore\": 5,\n    \"status\": \"NOT_STARTED\",\n    \"endTime\": \"2023-08-01T11:00:00Z\",\n    \"endScore\": 57,\n    \"duration\": 120,\n    \"cost\": 5.08,\n    \"linesOfGenTests\": 23\n}"
+					"raw": "{\n    \"githubRepo\": \"https://github.com/lancerzhang/survey-server\",\n    \"branch\": \"main\",\n    \"jobType\": \"coverage\"\n}"
 				},
 				"url": {
 					"raw": "{{base_url}}/jobs",
