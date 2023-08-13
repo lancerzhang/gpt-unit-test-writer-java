@@ -14,7 +14,7 @@ public class GptUnitTestWriterJavaApplication {
         }
 
         // Set the determined location in system properties so that it can be used in application.properties
-        System.setProperty("db.location", appDataLocation);
+        System.setProperty("app.location", appDataLocation);
 
         SpringApplication.run(GptUnitTestWriterJavaApplication.class, args);
     }
