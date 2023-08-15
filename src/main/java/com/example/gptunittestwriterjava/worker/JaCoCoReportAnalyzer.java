@@ -79,7 +79,7 @@ public class JaCoCoReportAnalyzer {
             int missed = Integer.parseInt(counterAttrs.getNamedItem("missed").getNodeValue());
             int covered = Integer.parseInt(counterAttrs.getNamedItem("covered").getNodeValue());
 
-            return (float) covered / (covered + missed) * 100;
+            return (double) covered / (covered + missed);
         }
 
         return 0;
