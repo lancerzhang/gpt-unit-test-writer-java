@@ -2,6 +2,8 @@ package com.example.gptunittestwriterjava.worker;
 
 import com.example.gptunittestwriterjava.config.ApplicationProperties;
 import com.example.gptunittestwriterjava.config.OpenAIProperties;
+import com.example.gptunittestwriterjava.entity.Job;
+import com.example.gptunittestwriterjava.entity.JobStatus;
 import com.example.gptunittestwriterjava.exception.BudgetExceededException;
 import com.example.gptunittestwriterjava.model.CoverageDetails;
 import com.example.gptunittestwriterjava.model.MethodCoverage;
@@ -25,6 +27,8 @@ import org.springframework.util.FileCopyUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +67,7 @@ public class CoverageWriter {
     private String projectInfo;
     private String projectBasePackage;
     private double budget;
+    private double cost;
     private ArrayList<Message> messages;
     private String testFilePath;
     private boolean hasTestFile;
@@ -87,26 +92,43 @@ public class CoverageWriter {
         setProjectPath(repoLocation);
     }
 
-    public void generateUnitTest() throws Exception {
-        logger.info("start to init project.");
-        initProject();
+    public void generateUnitTest(Job job) {
+        Instant startTime = Instant.now();
+        job.setStartTime(startTime);
 
-        logger.info("start to run mvn test for: " + projectPath);
-        CommandUtils.runMvnTest(projectPath);
-
-        extractor = new CoverageDetailExtractor(projectPath);
-
-        logger.info("start to analyze jacoco report");
-        Map<String, List<MethodCoverage>> lowCoverageMethods = analyzer.analyzeReport(projectPath);
-
-        budget = openAIProperties.getProjectBudget();
         try {
+            logger.info("start to init project.");
+            initProject();
+
+            logger.info("start to run mvn test for: " + projectPath);
+            CommandUtils.runMvnTest(projectPath);
+            job.setOriginScore(analyzer.getLineCoverage(projectPath));
+
+            logger.info("start to analyze jacoco report");
+            extractor = new CoverageDetailExtractor(projectPath);
+            Map<String, List<MethodCoverage>> lowCoverageMethods = analyzer.getLowCoverageMethods(projectPath);
+
+            budget = openAIProperties.getProjectBudget();
+
             for (String classPathName : lowCoverageMethods.keySet()) {
                 handleClass(classPathName, lowCoverageMethods.get(classPathName));
             }
-        } catch (BudgetExceededException e) {
+
+            logger.info("start to run mvn test for end score. ");
+            CommandUtils.runMvnTest(projectPath);
+            job.setEndScore(analyzer.getLineCoverage(projectPath));
+
+            job.setStatus(JobStatus.COMPLETED);
+        } catch (Exception e) {
+            job.setRemark(e.getMessage());
             logger.error("Exceed project budget.", e);
+            job.setStatus(JobStatus.ERROR);
         }
+
+        job.setCost(cost);
+        Instant endTime = Instant.now();
+        job.setEndTime(endTime);
+        job.setDuration(Duration.between(startTime, endTime).getSeconds());
     }
 
     protected void handleClass(String classPathName, List<MethodCoverage> methods) throws Exception {
@@ -158,7 +180,7 @@ public class CoverageWriter {
             String classSignatures = customClassExtractor.extractCustomClassSignature(javaSrcFullPath, projectBasePackage, javaFilePath, details.getMethodName());
             Map<String, Double> modelPrice = openAIProperties.getModelPrice(step);
             int tokens = modelPrice.get("tokens").intValue();
-            ;
+
             String prompt = preparePrompt(classPathName, details, notCoveredLinesString, partlyCoveredLinesString, classSignatures, tokens);
             String errMsg = handleCoverageStep(classPathName, step, prompt);
 
@@ -187,6 +209,7 @@ public class CoverageWriter {
         logger.debug(prompt);
         OpenAIResult result = openAIApiService.generateUnitTest(step, messages, hasTestFile);
         logger.debug(result.getContent());
+        cost += result.getCost();
         budget = budget - result.getCost();
         logger.info("Remain budget is " + budget);
         String codeBlock = FileUtils.extractMarkdownCodeBlocks(result.getContent());

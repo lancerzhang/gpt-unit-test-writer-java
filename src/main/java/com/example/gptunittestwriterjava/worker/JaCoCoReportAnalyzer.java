@@ -18,7 +18,7 @@ import static com.example.gptunittestwriterjava.utils.FileUtils.changeToSystemFi
 
 public class JaCoCoReportAnalyzer {
 
-    public Map<String, List<MethodCoverage>> analyzeReport(String projectPath) throws Exception {
+    public Map<String, List<MethodCoverage>> getLowCoverageMethods(String projectPath) throws Exception {
         Map<String, List<MethodCoverage>> lowCoverageMethods = new HashMap<>();
 
         File jacocoReport = new File(projectPath + changeToSystemFileSeparator("/target/site/jacoco/jacoco.xml"));
@@ -61,4 +61,27 @@ public class JaCoCoReportAnalyzer {
         return lowCoverageMethods;
     }
 
+
+    public double getLineCoverage(String projectPath) throws Exception {
+        File jacocoReport = new File(projectPath + "/target/site/jacoco/jacoco.xml");
+
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(jacocoReport);
+
+        XPathFactory xPathFactory = XPathFactory.newInstance();
+        XPath xpath = xPathFactory.newXPath();
+
+        Node counterNode = (Node) xpath.compile("//report/counter[@type='LINE']").evaluate(document, XPathConstants.NODE);
+        if (counterNode != null) {
+            NamedNodeMap counterAttrs = counterNode.getAttributes();
+            int missed = Integer.parseInt(counterAttrs.getNamedItem("missed").getNodeValue());
+            int covered = Integer.parseInt(counterAttrs.getNamedItem("covered").getNodeValue());
+
+            return (float) covered / (covered + missed) * 100;
+        }
+
+        return 0;
+    }
 }

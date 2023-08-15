@@ -37,12 +37,12 @@ public class Job {
     @Enumerated(EnumType.STRING)
     private JobType jobType;
     private Instant startTime;
-    private int originScore;
+    private double originScore;
     @Enumerated(EnumType.STRING)
     private JobStatus status;
     private Instant endTime;
-    private int endScore;
-    private int duration;
+    private double endScore;
+    private Long duration;
     private double cost;
     private int linesOfGenTests;
     @Size(max = 8000)

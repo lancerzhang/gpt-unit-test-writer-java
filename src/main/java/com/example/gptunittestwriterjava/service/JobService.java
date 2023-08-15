@@ -86,25 +86,10 @@ public class JobService {
         // Obtain a new instance of CoverageWriter from the application context
         CoverageWriter coverageWriter = applicationContext.getBean(CoverageWriter.class);
         coverageWriter.configure(job.getId(), job.getGithubRepo(), job.getBranch());
-        // Logic to run the job
-        try {
-            // Simulating job execution. Implement your logic here.
-            logger.info("Starting the job " + job.getId());
 
-            coverageWriter.generateUnitTest();
+        logger.info("Starting the job " + job.getId());
+        coverageWriter.generateUnitTest(job);
 
-            // If the job completes successfully, you might want to update its status to COMPLETED here
-            // Or if there's an error, you can update the status to ERROR
-
-            // job.setStatus(JobStatus.COMPLETED);
-            // jobRepository.save(job);
-        } catch (Exception e) {
-            // Log the exception and potentially update the job's status to ERROR, if needed
-            logger.error("Error while executing the job " + job.getId(), e);
-
-            // Uncomment below if you wish to set job status to ERROR upon exceptions
-            // job.setStatus(JobStatus.ERROR);
-            // jobRepository.save(job);
-        }
+        jobRepository.save(job);
     }
 }
