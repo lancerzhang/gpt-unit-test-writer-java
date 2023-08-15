@@ -67,12 +67,31 @@ public class JobService {
     }
 
     public List<Job> findNotStartedJobs() {
-        return jobRepository.findByStatusOrderByIDAsc(JobStatus.NOT_STARTED);
+        return jobRepository.findByStatusOrderByIdAsc(JobStatus.NOT_STARTED);
     }
 
     public void runJob(Job job) {
-        // Logic to run the job.
-        // Update the job's status, save results, etc.
-        logger.info("starting the job " + job.getId());
+        // Update the job's status to IN_PROGRESS and persist it
+        job.setStatus(JobStatus.IN_PROGRESS);
+        jobRepository.save(job);
+
+        // Logic to run the job
+        try {
+            // Simulating job execution. Implement your logic here.
+            logger.info("Starting the job " + job.getId());
+
+            // If the job completes successfully, you might want to update its status to COMPLETED here
+            // Or if there's an error, you can update the status to ERROR
+
+            // job.setStatus(JobStatus.COMPLETED);
+            // jobRepository.save(job);
+        } catch (Exception e) {
+            // Log the exception and potentially update the job's status to ERROR, if needed
+            logger.error("Error while executing the job " + job.getId(), e);
+
+            // Uncomment below if you wish to set job status to ERROR upon exceptions
+            // job.setStatus(JobStatus.ERROR);
+            // jobRepository.save(job);
+        }
     }
 }
