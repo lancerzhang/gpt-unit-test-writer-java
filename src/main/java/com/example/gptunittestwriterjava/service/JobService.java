@@ -9,9 +9,13 @@ import com.example.gptunittestwriterjava.exception.ExistingJobException;
 import com.example.gptunittestwriterjava.exception.InsufficientBudgetException;
 import com.example.gptunittestwriterjava.repository.JobRepository;
 import com.example.gptunittestwriterjava.repository.UserRepository;
+import com.example.gptunittestwriterjava.worker.CoverageWriter;
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,6 +25,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+@Getter
+@Setter
 @Service
 public class JobService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -29,6 +35,8 @@ public class JobService {
     private JobRepository jobRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private ApplicationContext applicationContext;
 
     public Optional<Job> getJobById(Long id) {
         return jobRepository.findById(id);
@@ -75,10 +83,15 @@ public class JobService {
         job.setStatus(JobStatus.IN_PROGRESS);
         jobRepository.save(job);
 
+        // Obtain a new instance of CoverageWriter from the application context
+        CoverageWriter coverageWriter = applicationContext.getBean(CoverageWriter.class);
+        coverageWriter.configure(job.getId(), job.getGithubRepo(), job.getBranch());
         // Logic to run the job
         try {
             // Simulating job execution. Implement your logic here.
             logger.info("Starting the job " + job.getId());
+
+            coverageWriter.generateUnitTest();
 
             // If the job completes successfully, you might want to update its status to COMPLETED here
             // Or if there's an error, you can update the status to ERROR

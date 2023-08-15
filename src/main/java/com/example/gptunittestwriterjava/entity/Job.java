@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.time.Instant;
 import java.util.Date;
 
@@ -25,8 +26,10 @@ public class Job {
     private Long id;
 
     @NotBlank
+    @Size(max = 500)
     private String githubRepo;
     @NotBlank
+    @Size(max = 255)
     private String branch;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -42,6 +45,8 @@ public class Job {
     private int duration;
     private double cost;
     private int linesOfGenTests;
+    @Size(max = 8000)
+    private String remark;
 
     private Date createdAt;
 

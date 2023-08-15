@@ -11,10 +11,13 @@ import com.example.gptunittestwriterjava.model.openai.Message;
 import com.example.gptunittestwriterjava.model.openai.OpenAIResult;
 import com.example.gptunittestwriterjava.service.OpenAIApiService;
 import com.example.gptunittestwriterjava.utils.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
@@ -29,7 +32,10 @@ import java.util.Map;
 
 import static com.example.gptunittestwriterjava.utils.FileUtils.changeToSystemFileSeparator;
 
+@Getter
+@Setter
 @Service
+@Scope("prototype")
 public class CoverageWriter {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -48,6 +54,11 @@ public class CoverageWriter {
     private Resource coverageNewResource;
     @Value("classpath:prompts/error_feedback.txt")
     private Resource errorFeedbackResource;
+    @Value("${app.location}")
+    private String appLocation;
+    private Long jobId;
+    private String githubRepo;
+    private String branch;
     private String projectPath;
     private String projectInfo;
     private String projectBasePackage;
@@ -56,7 +67,13 @@ public class CoverageWriter {
     private String testFilePath;
     private boolean hasTestFile;
 
-    public void setProjectPath(String projectPath) throws Exception {
+    public void configure(Long jobId, String githubRepo, String branch) {
+        this.jobId = jobId;
+        this.githubRepo = githubRepo;
+        this.branch = branch;
+    }
+
+    protected void setProjectPath(String projectPath) throws Exception {
         this.projectPath = projectPath;
         ProjectInfoExtractor projectInfoExtractor = new ProjectInfoExtractor(projectPath +
                 changeToSystemFileSeparator("/pom.xml"));
@@ -64,7 +81,16 @@ public class CoverageWriter {
         this.projectInfo = projectInfoExtractor.getProjectInfo();
     }
 
+    protected void initProject() throws Exception {
+        String repoLocation = appLocation + "/gptUnitTestWriter/" + jobId;
+        CommandUtils.runGitClone(githubRepo, branch, repoLocation);
+        setProjectPath(repoLocation);
+    }
+
     public void generateUnitTest() throws Exception {
+        logger.info("start to init project.");
+        initProject();
+
         logger.info("start to run mvn test for: " + projectPath);
         CommandUtils.runMvnTest(projectPath);
 

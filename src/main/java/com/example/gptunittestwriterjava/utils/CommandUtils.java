@@ -57,4 +57,18 @@ public class CommandUtils {
         return null;
     }
 
+    public static void runGitClone(String githubRepo, String branch, String targetDirectory)
+            throws InterruptedException, IOException {
+        String command = "git clone -b " + branch + " " + githubRepo + " " + targetDirectory;
+        logger.info("Start to run command: " + command);
+
+        Process process = Runtime.getRuntime().exec(command, null, new File(targetDirectory).getParentFile());
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            logger.debug(line);
+        }
+        process.waitFor();
+        logger.info("Finished running command: " + command);
+    }
 }
