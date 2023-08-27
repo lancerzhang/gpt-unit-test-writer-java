@@ -1,0 +1,50 @@
+@startuml
+title Automated Test Case Generation Process
+
+start
+
+:Run “mvn test”;
+
+:Extract jacoco report;
+
+:Identify methods with low coverage;
+
+while (Any low covered method found?) is (yes)
+    :Get not covered line number for method;
+
+    :Parse java class for method;
+
+    :Extract method code and append line number;
+
+    :Identify custom classes used in method;
+
+    :Get constructor signature for custom classes;
+
+    :Provide method details to GPT 3.5;
+    note right: Method code, coverage details, custom class details
+    :Ask ChatGPT for functional test case;
+
+    :Copy test case code to test file or create new file;
+
+    :Run “mvn test” for method;
+
+    if (Test pass?) then (yes)
+        :Test case accepted;
+    else (no)
+        :Capture error message;
+
+        :Feedback error to ChatGPT;
+
+        :Ask GPT for updated code;
+
+        if (Updated test still fails) then (yes)
+            :Use GPT4 for updated test case;
+        else (no)
+            :Continue;
+        endif
+    endif
+endwhile
+
+:End process;
+
+@enduml
